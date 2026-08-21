@@ -4,7 +4,48 @@ Interfaz web futurista para consultar OpenAlex y Crossref, filtrar por tema, per
 
 ## 🚀 Despliegue Web
 
-La aplicación está desplegada en: [ENLACE DE DESPLIEGUE](#)
+### Despliegue en Vercel
+
+1. **Instalar Vercel CLI** (opcional):
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Desplegar desde el directorio del proyecto**:
+   ```bash
+   vercel
+   ```
+   
+   O si prefieres usar el dashboard:
+   - Ve a [vercel.com](https://vercel.com)
+   - Importa tu repositorio de GitHub
+   - Vercel detectará automáticamente que es un proyecto Python
+   - Configura las variables de entorno si es necesario
+   - Haz clic en "Deploy"
+
+3. **Variables de entorno** (opcional):
+   - `PORT`: 5000 (configurado por defecto)
+
+4. **Tu aplicación estará disponible** en un URL como:
+   ```
+   https://tu-proyecto.vercel.app
+   ```
+
+### Despliegue Local
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/MichaelRCJ/ALGORITMOS-PARALELOS-AN-LISIS-Y-PROGRAMACI-N.git
+cd ALGORITMOS-PARALELOS-AN-LISIS-Y-PROGRAMACI-N
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Ejecutar la aplicación
+python app.py
+```
+
+La aplicación estará disponible en `http://localhost:5000`
 
 ## 📋 Características
 
