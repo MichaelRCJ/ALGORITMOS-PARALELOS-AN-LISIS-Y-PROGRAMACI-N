@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador Científico Inteligente | OpenAlex + Crossref</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1333 100%);
+            color: #e0e6ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00f5ff, #7b2dff, #00f5ff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #7b9fff;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        .search-panel {
+            background: rgba(13, 19, 51, 0.8);
+            border: 2px solid #00f5ff;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(0, 245, 255, 0.2), inset 0 0 60px rgba(0, 245, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #00f5ff;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 245, 255, 0.05);
+            border: 1px solid #00f5ff;
+            border-radius: 10px;
+            color: #e0e6ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #7b2dff;
+            box-shadow: 0 0 20px rgba(123, 45, 255, 0.3);
+            background: rgba(123, 45, 255, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00f5ff;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f5ff, #7b2dff);
+            color: #0a0e27;
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 50px rgba(0, 245, 255, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(123, 45, 255, 0.2);
+            border: 2px solid #7b2dff;
+            color: #7b2dff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(123, 45, 255, 0.4);
+            box-shadow: 0 0 30px rgba(123, 45, 255, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #0a0e27;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .results-section {
+            display: none;
+            background: rgba(13, 19, 51, 0.8);
+            border: 2px solid #7b2dff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(123, 45, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .results-count {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+        }
+
+        .results-table th {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: #00f5ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(0, 245, 255, 0.05);
+        }
+
+        .results-table tr:hover {
+            background: rgba(123, 45, 255, 0.1);
+        }
+
+        .results-table a {
+            color: #00f5ff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .results-table a:hover {
+            color: #7b2dff;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-open {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .badge-closed {
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6464;
+            border: 1px solid #ff6464;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 245, 255, 0.2);
+            border-top-color: #00f5ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(255, 100, 100, 0.1);
+            border: 1px solid #ff6464;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ff6464;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(0, 245, 255, 0.05);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00f5ff;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #7b9fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #7b9fff;
+            font-size: 0.9rem;
+        }
+
+        .particle {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #00f5ff;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.5;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .search-panel {
+                padding: 20px;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Buscador Científico</h1>
+            <p class="subtitle">OpenAlex + Crossref | Análisis Académico Inteligente</p>
+        </header>
+
+        <div class="search-panel">
+            <div class="form-group">
+                <label for="query">Tema de Investigación</label>
+                <textarea id="query" placeholder="Ej: sistemas expertos aplicados al diagnóstico médico, machine learning en bioinformática..."></textarea>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="year_from">Año Desde</label>
+                    <input type="number" id="year_from" value="2020" min="1900" max="2100">
+                </div>
+                <div class="form-group">
+                    <label for="year_to">Año Hasta</label>
+                    <input type="number" id="year_to" value="2026" min="1900" max="2100">
+                </div>
+                <div class="form-group">
+                    <label for="language">Idioma</label>
+                    <select id="language">
+                        <option value="any">Cualquier idioma</option>
+                        <option value="es">Español</option>
+                        <option value="en">Inglés</option>
+                        <option value="pt">Portugués</option>
+                        <option value="fr">Francés</option>
+                        <option value="de">Alemán</option>
+                        <option value="it">Italiano</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="limit">Resultados por fuente</label>
+                    <input type="number" id="limit" value="25" min="5" max="100">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="openalex_key">OpenAlex API Key (Opcional)</label>
+                <input type="text" id="openalex_key" placeholder="Tu API key de OpenAlex si tienes una">
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="require_doi" checked>
+                <label for="require_doi">Exigir DOI o URL</label>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="search()">
+                    🔍 Buscar Artículos
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Analizando bases de datos científicas...</p>
+        </div>
+
+        <div class="results-section" id="results">
+            <div class="results-header">
+                <h2 class="results-count" id="results-count">0 artículos encontrados</h2>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="exportExcel()">
+                        ⬇️ Exportar Excel
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadPDFs()">
+                        📚 Descargar PDFs
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-open">0</div>
+                    <div class="stat-label">Acceso Abierto</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-citations">0</div>
+                    <div class="stat-label">Citas Totales</div>
+                </div>
+            </div>
+
+            <div id="error-container"></div>
+
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Autores</th>
+                        <th>Año</th>
+                        <th>Revista</th>
+                        <th>DOI</th>
+                        <th>Acceso</th>
+                        <th>Citas</th>
+                        <th>Enlace</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <p>Buscador Científico Inteligente | Desarrollado para investigación académica</p>
+        </footer>
+    </div>
+
+    <script>
+        let currentResults = [];
+
+        function search() {
+            const query = document.getElementById('query').value.trim();
+            const yearFrom = parseInt(document.getElementById('year_from').value);
+            const yearTo = parseInt(document.getElementById('year_to').value);
+            const language = document.getElementById('language').value;
+            const limit = parseInt(document.getElementById('limit').value);
+            const requireDoi = document.getElementById('require_doi').checked;
+            const openalexKey = document.getElementById('openalex_key').value.trim();
+
+            if (!query) {
+                alert('Por favor ingrese un tema de búsqueda');
+                return;
+            }
+
+            if (yearFrom > yearTo) {
+                alert('El año inicial no puede ser mayor que el final');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    year_from: yearFrom,
+                    year_to: yearTo,
+                    language: language === 'any' ? null : language,
+                    limit: limit,
+                    require_doi: requireDoi,
+                    openalex_key: openalexKey || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.remove('active');
+                currentResults = data.results;
+                displayResults(data);
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.remove('active');
+                console.error('Error:', error);
+                alert('Error al realizar la búsqueda');
+            });
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('results');
+            const resultsBody = document.getElementById('results-body');
+            const resultsCount = document.getElementById('results-count');
+            const errorContainer = document.getElementById('error-container');
+            const stats = document.getElementById('stats');
+
+            resultsBody.innerHTML = '';
+            errorContainer.innerHTML = '';
+
+            if (data.errors && data.errors.length > 0) {
+                data.errors.forEach(error => {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error';
+                    errorDiv.textContent = error;
+                    errorContainer.appendChild(errorDiv);
+                });
+            }
+
+            if (data.results.length === 0) {
+                resultsCount.textContent = 'No se encontraron resultados';
+                resultsSection.classList.add('active');
+                stats.style.display = 'none';
+                return;
+            }
+
+            resultsCount.textContent = `${data.results.length} artículos encontrados`;
+            resultsSection.classList.add('active');
+
+            let totalCitations = 0;
+            let openAccess = 0;
+
+            data.results.forEach(article => {
+                totalCitations += article.citas || 0;
+                if (article.acceso_abierto) openAccess++;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${article.titulo}</strong></td>
+                    <td>${article.autores || 'N/A'}</td>
+                    <td>${article.anio || 'N/A'}</td>
+                    <td>${article.revista || 'N/A'}</td>
+                    <td>${article.doi ? `<a href="https://doi.org/${article.doi}" target="_blank">${article.doi}</a>` : 'N/A'}</td>
+                    <td><span class="badge ${article.acceso_abierto ? 'badge-open' : 'badge-closed'}">${article.acceso_abierto ? 'Abierto' : 'Cerrado'}</span></td>
+                    <td>${article.citas || 0}</td>
+                    <td>${article.url ? `<a href="${article.url}" target="_blank">🔗</a>` : 'N/A'}</td>
+                `;
+                resultsBody.appendChild(row);
+            });
+
+            document.getElementById('stat-total').textContent = data.results.length;
+            document.getElementById('stat-open').textContent = openAccess;
+            document.getElementById('stat-citations').textContent = totalCitations;
+            stats.style.display = 'grid';
+        }
+
+        function exportExcel() {
+            if (currentResults.length === 0) {
+                alert('No hay resultados para exportar');
+                return;
+            }
+
+            fetch('/export', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ results: currentResults })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'articulos_cientificos.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al exportar');
+            });
+        }
+
+        function downloadPDFs() {
+            if (currentResults.length === 0) {
+                alert('No hay resultados para descargar');
+                return;
+            }
+
+            const openAccessResults = currentResults.filter(r => r.pdf_oa);
+            
+            if (openAccessResults.length === 0) {
+                alert('No hay artículos con PDF de acceso abierto disponible');
+                return;
+            }
+
+            fetch('/download_pdfs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ results: openAccessResults })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(`${data.ok} PDFs descargados exitosamente. ${data.failed.length} no disponibles.`);
+                if (data.failed.length > 0) {
+                    console.log('Fallados:', data.failed);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al descargar PDFs');
+            });
+        }
+
+        // Create floating particles
+        function createParticles() {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                document.body.appendChild(particle);
+            }
+        }
+
+        createParticles();
+    </script>
+</body>
+</html>
