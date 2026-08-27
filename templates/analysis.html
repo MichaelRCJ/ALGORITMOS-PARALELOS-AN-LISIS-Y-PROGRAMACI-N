@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Michael Search | Análisis Bibliográfico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1333 100%);
+            color: #e0e6ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ff6b6b, #ffa500, #ff6b6b);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #ffaa80;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            border-radius: 10px;
+            color: #ff6b6b;
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 107, 107, 0.4);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .panel {
+            background: rgba(13, 19, 51, 0.8);
+            border: 2px solid #ff6b6b;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(255, 107, 107, 0.2), inset 0 0 60px rgba(255, 107, 107, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: #ffaa80;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 107, 107, 0.05);
+            border: 1px solid #ff6b6b;
+            border-radius: 10px;
+            color: #e0e6ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #ffa500;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+            background: rgba(255, 165, 0, 0.1);
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: #0a0e27;
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(255, 107, 107, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 165, 0, 0.2);
+            border: 2px solid #ffa500;
+            color: #ffa500;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 165, 0, 0.4);
+            box-shadow: 0 0 30px rgba(255, 165, 0, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #0a0e27;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .category-btn {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid #ff6b6b;
+            border-radius: 15px;
+            padding: 15px;
+            color: #ff6b6b;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .category-btn:hover {
+            background: rgba(255, 107, 107, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: #0a0e27;
+        }
+
+        .results-area {
+            display: none;
+            background: rgba(13, 19, 51, 0.8);
+            border: 2px solid #ffa500;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 0 40px rgba(255, 165, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .results-area.active {
+            display: block;
+        }
+
+        .results-area h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: #ffa500;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .analysis-content {
+            background: rgba(255, 165, 0, 0.05);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #e0e6ff;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .sources-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .sources-table th,
+        .sources-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        .sources-table th {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: #ff6b6b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(255, 107, 107, 0.05);
+        }
+
+        .sources-table tr:hover {
+            background: rgba(255, 165, 0, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 107, 107, 0.2);
+            border-top-color: #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(255, 100, 100, 0.1);
+            border: 1px solid #ff6464;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ff6464;
+        }
+
+        .success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #00ff88;
+        }
+
+        .articles-info {
+            background: rgba(255, 165, 0, 0.05);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ffa500;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            .panel {
+                padding: 20px;
+            }
+            .category-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍅 Ventana de Análisis</h1>
+            <p class="subtitle">Análisis Bibliográfico Inteligente con Categorías Académicas</p>
+            <a href="/" class="nav-link">← Volver al Buscador Principal</a>
+        </header>
+
+        <!-- Panel 1: Cargar Excel -->
+        <div class="panel">
+            <h2>📥 1. Cargar Excel para Análisis</h2>
+            <p style="color: #7b9fff; margin-bottom: 15px;">Sube el archivo Excel con los artículos científicos que deseas analizar.</p>
+            
+            <div class="form-group">
+                <label for="excel_file">Seleccionar archivo Excel (.xlsx, .xls)</label>
+                <input type="file" id="excel_file" accept=".xlsx,.xls">
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="loadExcel()">
+                    📥 Cargar Excel
+                </button>
+            </div>
+            
+            <div id="load-message" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- Panel 2: Información de artículos cargados -->
+        <div class="panel" id="articles-panel" style="display: none;">
+            <h2>📚 2. Artículos Cargados</h2>
+            <div class="articles-info" id="articles-info"></div>
+        </div>
+
+        <!-- Panel 3: Categorías de análisis -->
+        <div class="panel" id="categories-panel" style="display: none;">
+            <h2>🔬 3. Seleccionar Categoría de Análisis</h2>
+            <p style="color: #7b9fff; margin-bottom: 15px;">Selecciona qué aspecto de los artículos deseas investigar.</p>
+            
+            <div class="category-grid">
+                <button class="category-btn" onclick="investigateCategory('antecedentes')">📚 Antecedentes</button>
+                <button class="category-btn" onclick="investigateCategory('modelos')">📊 Modelos</button>
+                <button class="category-btn" onclick="investigateCategory('metodologias')">🔬 Metodologías</button>
+                <button class="category-btn" onclick="investigateCategory('metodos')">🧩 Métodos</button>
+                <button class="category-btn" onclick="investigateCategory('experimentos')">🧪 Experimentos</button>
+                <button class="category-btn" onclick="investigateCategory('replicas')">🔁 Réplicas</button>
+                <button class="category-btn" onclick="investigateCategory('tecnicas')">🛠️ Técnicas</button>
+                <button class="category-btn" onclick="investigateCategory('herramientas')">💻 Herramientas</button>
+                <button class="category-btn" onclick="investigateCategory('resultados')">📈 Resultados</button>
+                <button class="category-btn" onclick="investigateCategory('limitaciones')">⚠️ Limitaciones</button>
+                <button class="category-btn" onclick="investigateCategory('recomendaciones')">💡 Recomendaciones</button>
+            </div>
+            
+            <div class="btn-group" style="margin-top: 25px;">
+                <button class="btn btn-primary" onclick="investigateAll()">
+                    🍅 INVESTIGAR TODAS LAS CATEGORÍAS
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel 4: Resultados del análisis -->
+        <div class="results-area" id="results-area">
+            <h3>🔎 4. Fuentes Académicas Encontradas</h3>
+            
+            <div class="loading" id="analysis-loading">
+                <div class="loading-spinner"></div>
+                <p>Analizando fuentes académicas y generando contenido...</p>
+            </div>
+            
+            <div id="analysis-message"></div>
+            
+            <div id="analysis-content" class="analysis-content" style="display: none;"></div>
+            
+            <div id="sources-section" style="display: none;">
+                <h3 style="color: #ff6b6b; margin-top: 20px;">📚 Fuentes Utilizadas</h3>
+                <table class="sources-table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Autores</th>
+                            <th>Año</th>
+                            <th>Revista</th>
+                            <th>DOI</th>
+                            <th>Fuente</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sources-body">
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Panel 5: Exportación -->
+            <div class="panel" style="margin-top: 30px; border-color: #00ff88;">
+                <h2 style="color: #00ff88;">📤 5. Exportar Resultados</h2>
+                <p style="color: #7b9fff; margin-bottom: 15px;">Descarga tu análisis en diferentes formatos.</p>
+                
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="exportWord()">
+                        📄 Generar Word
+                    </button>
+                    <button class="btn btn-success" onclick="exportPDF()">
+                        📕 Generar PDF
+                    </button>
+                    <button class="btn btn-success" onclick="exportExcel()">
+                        📊 Generar Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer style="text-align: center; padding: 30px; color: #7b9fff; font-size: 0.9rem;">
+            <p>Michael Search | Análisis Bibliográfico</p>
+        </footer>
+    </div>
+
+    <script>
+        let loadedArticles = [];
+        let currentAnalysisContent = '';
+        let currentSources = [];
+
+        function loadExcel() {
+            const fileInput = document.getElementById('excel_file');
+            const messageDiv = document.getElementById('load-message');
+            
+            if (fileInput.files.length === 0) {
+                messageDiv.innerHTML = '<div class="error">⚠️ Por favor selecciona un archivo Excel.</div>';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            messageDiv.innerHTML = '<div class="loading active"><div class="loading-spinner"></div><p>Cargando Excel...</p></div>';
+            
+            fetch('/analysis/load_excel', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadedArticles = data.articulos;
+                    messageDiv.innerHTML = `<div class="success">${data.message}</div>`;
+                    
+                    // Mostrar información de artículos
+                    document.getElementById('articles-panel').style.display = 'block';
+                    document.getElementById('articles-info').innerHTML = `
+                        <strong>Artículos cargados:</strong> ${loadedArticles.length}<br>
+                        <strong>Columnas disponibles:</strong> ${data.columnas.join(', ')}
+                    `;
+                    
+                    // Mostrar panel de categorías
+                    document.getElementById('categories-panel').style.display = 'block';
+                } else {
+                    messageDiv.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                messageDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            });
+        }
+
+        function investigateCategory(category) {
+            if (loadedArticles.length === 0) {
+                alert('Primero carga un archivo Excel con artículos.');
+                return;
+            }
+            
+            // Activar botón seleccionado
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            performAnalysis(category);
+        }
+
+        function investigateAll() {
+            if (loadedArticles.length === 0) {
+                alert('Primero carga un archivo Excel con artículos.');
+                return;
+            }
+            
+            performAnalysis('all');
+        }
+
+        function performAnalysis(category) {
+            const resultsArea = document.getElementById('results-area');
+            const loadingDiv = document.getElementById('analysis-loading');
+            const messageDiv = document.getElementById('analysis-message');
+            const contentDiv = document.getElementById('analysis-content');
+            const sourcesSection = document.getElementById('sources-section');
+            
+            resultsArea.classList.add('active');
+            loadingDiv.classList.add('active');
+            messageDiv.innerHTML = '';
+            contentDiv.style.display = 'none';
+            sourcesSection.style.display = 'none';
+            
+            const endpoint = category === 'all' ? '/analysis/investigate_all' : '/analysis/investigate_category';
+            const payload = category === 'all' 
+                ? { articulos: loadedArticles }
+                : { articulos: loadedArticles, category: category };
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.classList.remove('active');
+                
+                if (data.success) {
+                    currentAnalysisContent = data.mensaje;
+                    currentSources = data.fuentes;
+                    
+                    messageDiv.innerHTML = `<div class="success">✅ Análisis completado para ${category === 'all' ? 'todas las categorías' : category}</div>`;
+                    
+                    contentDiv.innerHTML = data.mensaje;
+                    contentDiv.style.display = 'block';
+                    
+                    if (data.fuentes && data.fuentes.length > 0) {
+                        sourcesSection.style.display = 'block';
+                        const sourcesBody = document.getElementById('sources-body');
+                        sourcesBody.innerHTML = data.fuentes.map(fuente => `
+                            <tr>
+                                <td>${fuente['Título'] || ''}</td>
+                                <td>${fuente['Autores'] || ''}</td>
+                                <td>${fuente['Año'] || ''}</td>
+                                <td>${fuente['Revista'] || ''}</td>
+                                <td>${fuente['DOI'] || ''}</td>
+                                <td>${fuente['Fuente'] || ''}</td>
+                            </tr>
+                        `).join('');
+                    }
+                } else {
+                    messageDiv.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                loadingDiv.classList.remove('active');
+                messageDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            });
+        }
+
+        function exportWord() {
+            if (!currentAnalysisContent) {
+                alert('Primero realiza un análisis.');
+                return;
+            }
+            
+            fetch('/analysis/export_word', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    content: currentAnalysisContent,
+                    title: 'Análisis Bibliográfico'
+                })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analisis_bibliografico.docx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => alert('Error exportando Word: ' + error.message));
+        }
+
+        function exportPDF() {
+            if (!currentAnalysisContent) {
+                alert('Primero realiza un análisis.');
+                return;
+            }
+            
+            fetch('/analysis/export_pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    content: currentAnalysisContent,
+                    title: 'Análisis Bibliográfico'
+                })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analisis_bibliografico.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => alert('Error exportando PDF: ' + error.message));
+        }
+
+        function exportExcel() {
+            if (!currentSources || currentSources.length === 0) {
+                alert('Primero realiza un análisis para tener fuentes.');
+                return;
+            }
+            
+            fetch('/analysis/export_excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fuentes: currentSources })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analisis_bibliografico.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => alert('Error exportando Excel: ' + error.message));
+        }
+    </script>
+</body>
+</html>

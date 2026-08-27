@@ -1,0 +1,7 @@
+flask==3.0.0
+pandas
+requests
+openpyxl
+groq
+python-docx
+reportlab
