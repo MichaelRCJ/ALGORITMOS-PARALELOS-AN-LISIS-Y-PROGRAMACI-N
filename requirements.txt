@@ -5,3 +5,5 @@ openpyxl
 groq
 python-docx
 reportlab
+python-dotenv
+PyPDF2

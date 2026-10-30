@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Comparar Artículos | Michael Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1333 100%);
+            color: #e0e6ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00f5ff, #7b2dff, #00f5ff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #7b9fff;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            border-radius: 10px;
+            color: #ff6b6b;
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 107, 107, 0.4);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .panel {
+            background: rgba(13, 19, 51, 0.8);
+            border: 2px solid #00f5ff;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(0, 245, 255, 0.2), inset 0 0 60px rgba(0, 245, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #00f5ff;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 245, 255, 0.05);
+            border: 1px solid #00f5ff;
+            border-radius: 10px;
+            color: #e0e6ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #7b2dff;
+            box-shadow: 0 0 20px rgba(123, 45, 255, 0.3);
+            background: rgba(123, 45, 255, 0.1);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 245, 255, 0.05);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(0, 245, 255, 0.1);
+            border-color: #00f5ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00f5ff;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f5ff, #7b2dff);
+            color: #0a0e27;
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 50px rgba(0, 245, 255, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(123, 45, 255, 0.2);
+            border: 2px solid #7b2dff;
+            color: #7b2dff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(123, 45, 255, 0.4);
+            box-shadow: 0 0 30px rgba(123, 45, 255, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #0a0e27;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .results-section {
+            display: none;
+            background: rgba(13, 19, 51, 0.8);
+            border: 2px solid #7b2dff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(123, 45, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .results-count {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+            vertical-align: top;
+        }
+
+        .comparison-table th {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: #00f5ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(0, 245, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(123, 45, 255, 0.1);
+        }
+
+        .comparison-table .aspect-cell {
+            font-weight: 600;
+            color: #7b2dff;
+            width: 15%;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 245, 255, 0.2);
+            border-top-color: #00f5ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(255, 100, 100, 0.1);
+            border: 1px solid #ff6464;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ff6464;
+        }
+
+        .articles-preview {
+            background: rgba(0, 245, 255, 0.05);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .article-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-title {
+            font-weight: 600;
+            color: #00f5ff;
+            margin-bottom: 5px;
+        }
+
+        .article-meta {
+            font-size: 0.85rem;
+            color: #7b9fff;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #7b9fff;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            .panel {
+                padding: 20px;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+            .comparison-table th,
+            .comparison-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Comparar Artículos</h1>
+            <p class="subtitle">Análisis Comparativo Inteligente con Gemini AI</p>
+            <a href="/" class="nav-link">← Volver al Buscador</a>
+        </header>
+
+        <div class="panel">
+            <div class="form-group">
+                <label for="excel_file">Cargar Archivo Excel de Artículos</label>
+                <input type="file" id="excel_file" accept=".xlsx,.xls" onchange="uploadFile()">
+                <p style="font-size: 0.85rem; color: #7b9fff; margin-top: 5px;">
+                    El archivo debe contener columnas como: título, autores, año, abstract, doi, etc.
+                </p>
+                <div id="upload-status" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
+            </div>
+
+            <div id="upload-section" style="display: none;">
+                <div class="articles-preview" id="articles-preview"></div>
+                <p id="articles-count" style="color: #00ff88; margin-bottom: 20px;"></p>
+            </div>
+
+            <div class="form-group" id="fields-section" style="display: none;">
+                <label>Seleccionar Campos para Análisis y Comparación</label>
+                <div class="checkbox-grid" id="fields-checkboxes">
+                    {% for field, label in field_labels.items() %}
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="field_{{ field }}" value="{{ field }}" checked>
+                        <label for="field_{{ field }}">{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group" id="count-section" style="display: none;">
+                <label>Cantidad de Artículos a Comparar</label>
+                <div class="row">
+                    <div class="checkbox-item" style="flex: 1;">
+                        <input type="radio" id="count_5" name="article_count" value="5" checked>
+                        <label for="count_5">5 artículos</label>
+                    </div>
+                    <div class="checkbox-item" style="flex: 1;">
+                        <input type="radio" id="count_10" name="article_count" value="10">
+                        <label for="count_10">10 artículos</label>
+                    </div>
+                    <div class="checkbox-item" style="flex: 1;">
+                        <input type="radio" id="count_19" name="article_count" value="19">
+                        <label for="count_19">19 artículos</label>
+                    </div>
+                    <div class="checkbox-item" style="flex: 1;">
+                        <input type="radio" id="count_custom" name="article_count" value="custom">
+                        <label for="count_custom">Personalizado</label>
+                    </div>
+                </div>
+                <div class="form-group" id="custom-count-group" style="display: none; margin-top: 15px;">
+                    <label for="custom_count">Número de artículos</label>
+                    <input type="number" id="custom_count" min="1" max="50" value="5">
+                </div>
+            </div>
+
+            <div class="btn-group" id="action-buttons" style="display: none;">
+                <button class="btn btn-primary" onclick="analyzeWithGemini()">
+                    🤖 Analizar Artículos Seleccionados con Gemini
+                </button>
+                <button class="btn btn-success" onclick="compareArticles()">
+                    📊 Generar Comparación
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p id="loading-text">Procesando...</p>
+        </div>
+
+        <div class="results-section" id="results">
+            <div class="results-header">
+                <h2 class="results-count" id="results-title">Tabla Comparativa</h2>
+                <button class="btn btn-success" onclick="exportToExcel()" style="display: none;" id="export-btn">
+                    📥 Descargar Excel
+                </button>
+            </div>
+
+            <div id="error-container"></div>
+
+            <table class="comparison-table" id="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Aspecto</th>
+                        <th>Artículos/Autores</th>
+                        <th>Semejanzas</th>
+                        <th>Diferencias</th>
+                        <th>Conclusión</th>
+                    </tr>
+                </thead>
+                <tbody id="comparison-body">
+                </tbody>
+            </table>
+
+            <div class="panel" id="question-section" style="margin-top: 30px; display: none;">
+                <h3 style="font-family: 'Orbitron', sans-serif; color: #00f5ff; margin-bottom: 20px;">
+                    🤔 Hacer Preguntas sobre el Análisis
+                </h3>
+                <div class="form-group">
+                    <label for="question-input">Ingresa tu pregunta sobre los artículos analizados</label>
+                    <textarea id="question-input" rows="3"
+                        style="width: 100%; padding: 15px 20px; background: rgba(0, 245, 255, 0.05); border: 1px solid #00f5ff; border-radius: 10px; color: #e0e6ff; font-family: 'Rajdhani', sans-serif; font-size: 1rem; resize: vertical;"
+                        placeholder="Ej: ¿Cuál es la metodología más común entre los artículos? ¿Qué herramientas se utilizaron?"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="askQuestion()">
+                        💬 Enviar Pregunta
+                    </button>
+                </div>
+                <div id="answer-container" style="margin-top: 20px; display: none;">
+                    <div style="background: rgba(123, 45, 255, 0.1); border: 1px solid #7b2dff; border-radius: 10px; padding: 20px;">
+                        <h4 style="color: #7b2dff; margin-bottom: 10px; font-family: 'Orbitron', sans-serif;">Respuesta:</h4>
+                        <p id="answer-text" style="line-height: 1.6;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Michael Search | Comparación Inteligente de Artículos Científicos</p>
+        </footer>
+    </div>
+
+    <script>
+        let uploadedArticles = [];
+        let analyzedArticles = [];
+        let currentComparisons = [];
+
+        function uploadFile() {
+            try {
+                const fileInput = document.getElementById('excel_file');
+                const file = fileInput.files[0];
+                if (!file) return;
+
+                const statusDiv = document.getElementById('upload-status');
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = 'rgba(0, 245, 255, 0.1)';
+                statusDiv.style.border = '1px solid #00f5ff';
+                statusDiv.style.color = '#00f5ff';
+                statusDiv.textContent = '⏳ Cargando archivo...';
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/compare/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        uploadedArticles = data.articles;
+                        statusDiv.style.background = 'rgba(0, 255, 136, 0.1)';
+                        statusDiv.style.border = '1px solid #00ff88';
+                        statusDiv.style.color = '#00ff88';
+                        statusDiv.textContent = `✅ ${data.count} artículos cargados correctamente`;
+                        
+                        displayArticlesPreview(uploadedArticles);
+                        
+                        document.getElementById('upload-section').style.display = 'block';
+                        document.getElementById('fields-section').style.display = 'block';
+                        document.getElementById('count-section').style.display = 'block';
+                        document.getElementById('action-buttons').style.display = 'block';
+                        document.getElementById('articles-count').textContent = `${data.count} artículos cargados correctamente`;
+                    } else {
+                        statusDiv.style.background = 'rgba(255, 100, 100, 0.1)';
+                        statusDiv.style.border = '1px solid #ff6464';
+                        statusDiv.style.color = '#ff6464';
+                        statusDiv.textContent = `❌ Error: ${data.error}`;
+                    }
+                })
+                .catch(error => {
+                    statusDiv.style.background = 'rgba(255, 100, 100, 0.1)';
+                    statusDiv.style.border = '1px solid #ff6464';
+                    statusDiv.style.color = '#ff6464';
+                    statusDiv.textContent = `❌ Error: ${error.message}`;
+                });
+            } catch (error) {
+                const statusDiv = document.getElementById('upload-status');
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = 'rgba(255, 100, 100, 0.1)';
+                statusDiv.style.border = '1px solid #ff6464';
+                statusDiv.style.color = '#ff6464';
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Manejar cambio de radio buttons para cantidad de artículos
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioButtons = document.querySelectorAll('input[name="article_count"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const customGroup = document.getElementById('custom-count-group');
+                    if (this.value === 'custom') {
+                        customGroup.style.display = 'block';
+                    } else {
+                        customGroup.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        function getArticleCount() {
+            const selected = document.querySelector('input[name="article_count"]:checked');
+            if (!selected) return 5;
+            
+            if (selected.value === 'custom') {
+                const customCount = parseInt(document.getElementById('custom_count').value);
+                return Math.min(Math.max(customCount, 1), uploadedArticles.length);
+            }
+            
+            return Math.min(parseInt(selected.value), uploadedArticles.length);
+        }
+
+        function getSelectedArticles() {
+            const count = getArticleCount();
+            return uploadedArticles.slice(0, count);
+        }
+
+        function displayArticlesPreview(articles) {
+            const preview = document.getElementById('articles-preview');
+            preview.innerHTML = '';
+            
+            articles.slice(0, 10).forEach(article => {
+                const div = document.createElement('div');
+                div.className = 'article-item';
+                // Buscar campos con diferentes nombres posibles
+                const titulo = article.titulo || article.title || article['título'] || 'Sin título';
+                const autores = article.autores || article.authors || article.author || 'Autores desconocidos';
+                const anio = article.anio || article.year || article.año || article['año'] || 'Año desconocido';
+                
+                div.innerHTML = `
+                    <div class="article-title">${titulo}</div>
+                    <div class="article-meta">
+                        ${autores} | 
+                        ${anio}
+                    </div>
+                `;
+                preview.appendChild(div);
+            });
+
+            if (articles.length > 10) {
+                const more = document.createElement('div');
+                more.style.textAlign = 'center';
+                more.style.color = '#7b9fff';
+                more.style.padding = '10px';
+                more.textContent = `... y ${articles.length - 10} artículos más`;
+                preview.appendChild(more);
+            }
+        }
+
+        function getSelectedFields() {
+            const checkboxes = document.querySelectorAll('#fields-checkboxes input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function analyzeWithGemini() {
+            const selectedFields = getSelectedFields();
+            if (selectedFields.length === 0) {
+                alert('Por favor selecciona al menos un campo para analizar');
+                return;
+            }
+
+            const articlesToAnalyze = getSelectedArticles();
+            const count = articlesToAnalyze.length;
+            
+            if (count === 0) {
+                alert('No hay artículos para analizar');
+                return;
+            }
+
+            if (!confirm(`¿Analizar ${count} artículos con Gemini AI? Esto puede tardar varios minutos.`)) {
+                return;
+            }
+
+            showLoading(`Analizando ${count} artículos con Gemini AI...`);
+
+            fetch('/compare/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    articles: articlesToAnalyze,
+                    selected_fields: selectedFields
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    analyzedArticles = data.articles;
+                    alert(`✅ Análisis completado. ${count} artículos han sido enriquecidos con información de Gemini.`);
+                } else {
+                    showError(data.error || 'Error al analizar');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('Error al analizar: ' + error.message);
+            });
+        }
+
+        function compareArticles() {
+            const selectedFields = getSelectedFields();
+            if (selectedFields.length === 0) {
+                alert('Por favor selecciona al menos un campo para comparar');
+                return;
+            }
+
+            const articlesToCompare = analyzedArticles.length > 0 ? analyzedArticles : getSelectedArticles();
+            const count = articlesToCompare.length;
+            
+            if (count === 0) {
+                alert('No hay artículos para comparar');
+                return;
+            }
+
+            if (!confirm(`¿Generar comparación de ${count} artículos con Gemini AI?\n\nSi faltan campos, Gemini completará la información automáticamente.`)) {
+                return;
+            }
+
+            showLoading(`Analizando y comparando ${count} artículos con Gemini AI...\nEsto puede tardar varios minutos.`);
+
+            fetch('/compare/compare', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    articles: articlesToCompare,
+                    selected_fields: selectedFields
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    if (data.enriched) {
+                        alert('✅ Información faltante completada con Gemini. Comparación generada.');
+                    }
+                    displayComparison(data.comparisons);
+                } else {
+                    showError(data.error || 'Error al comparar');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('Error al comparar: ' + error.message);
+            });
+        }
+
+        function displayComparison(comparisons) {
+            const resultsSection = document.getElementById('results');
+            const tbody = document.getElementById('comparison-body');
+            const errorContainer = document.getElementById('error-container');
+            const questionSection = document.getElementById('question-section');
+            const exportBtn = document.getElementById('export-btn');
+
+            tbody.innerHTML = '';
+            errorContainer.innerHTML = '';
+
+            currentComparisons = comparisons;
+
+            comparisons.forEach(comp => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="aspect-cell">${comp.aspecto || 'N/A'}</td>
+                    <td>${comp.articulos_autores || 'N/A'}</td>
+                    <td>${comp.semejanzas || 'N/A'}</td>
+                    <td>${comp.diferencias || 'N/A'}</td>
+                    <td>${comp.conclusion || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            resultsSection.classList.add('active');
+            questionSection.style.display = 'block';
+            exportBtn.style.display = 'inline-block';
+        }
+
+        function askQuestion() {
+            const questionInput = document.getElementById('question-input');
+            const question = questionInput.value.trim();
+
+            if (!question) {
+                alert('Por favor ingresa una pregunta');
+                return;
+            }
+
+            const articlesToUse = analyzedArticles.length > 0 ? analyzedArticles : getSelectedArticles();
+
+            if (!currentComparisons || currentComparisons.length === 0) {
+                alert('Primero debes generar la comparación de artículos');
+                return;
+            }
+
+            // Mostrar loading sin ocultar resultados
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('loading-text').textContent = 'Analizando tu pregunta...';
+
+            console.log('Enviando pregunta:', question);
+            console.log('Artículos:', articlesToUse.length);
+            console.log('Comparaciones:', currentComparisons.length);
+
+            fetch('/compare/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    articles: articlesToUse,
+                    comparisons: currentComparisons,
+                    question: question
+                })
+            })
+            .then(response => {
+                console.log('Respuesta recibida, status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos recibidos:', data);
+                // Ocultar loading pero mantener resultados visibles
+                document.getElementById('loading').classList.remove('active');
+                if (data.success) {
+                    const answerContainer = document.getElementById('answer-container');
+                    const answerText = document.getElementById('answer-text');
+                    answerText.textContent = data.answer;
+                    answerContainer.style.display = 'block';
+                    console.log('Respuesta mostrada');
+                } else {
+                    showError(data.error || 'Error al responder la pregunta');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loading').classList.remove('active');
+                showError('Error al responder la pregunta: ' + error.message);
+            });
+        }
+
+        function showLoading(text, hideResults = true) {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('loading-text').textContent = text;
+            if (hideResults) {
+                document.getElementById('results').classList.remove('active');
+            }
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function exportToExcel() {
+            if (!currentComparisons || currentComparisons.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            // Crear datos para el Excel
+            const excelData = currentComparisons.map(comp => ({
+                'Aspecto': comp.aspecto || 'N/A',
+                'Artículos/Autores': comp.articulos_autores || 'N/A',
+                'Semejanzas': comp.semejanzas || 'N/A',
+                'Diferencias': comp.diferencias || 'N/A',
+                'Conclusión': comp.conclusion || 'N/A'
+            }));
+
+            // Crear hoja de trabajo
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // Ajustar ancho de columnas
+            const wscols = [
+                {wch: 20},  // Aspecto
+                {wch: 50},  // Artículos/Autores
+                {wch: 40},  // Semejanzas
+                {wch: 40},  // Diferencias
+                {wch: 40}   // Conclusión
+            ];
+            ws['!cols'] = wscols;
+
+            // Crear libro de trabajo
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Comparación');
+
+            // Generar nombre de archivo con fecha
+            const fecha = new Date().toISOString().split('T')[0];
+            const fileName = `comparacion_articulos_${fecha}.xlsx`;
+
+            // Descargar archivo
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+</body>
+</html>

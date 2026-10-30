@@ -3,6 +3,10 @@ import os, re, io, json, time, html, zipfile, unicodedata
 from pathlib import Path
 import pandas as pd
 import requests
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 from api_clients import (
     search_openalex, search_crossref, dedupe,
@@ -14,11 +18,17 @@ from groq_service import (
 )
 from export_handlers import export_to_excel, export_to_word, export_to_pdf
 from analysis_routes import analysis_bp
+from analysis_individual_routes import individual_bp
+from compare_routes import compare_bp
+from conclusion_routes import conclusion_bp
 
 app = Flask(__name__)
 
 # Registrar blueprint de análisis
 app.register_blueprint(analysis_bp)
+app.register_blueprint(individual_bp)
+app.register_blueprint(compare_bp)
+app.register_blueprint(conclusion_bp)
 
 # Configuration
 SESSION = requests.Session()

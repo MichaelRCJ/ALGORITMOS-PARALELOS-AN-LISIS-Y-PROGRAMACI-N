@@ -11,11 +11,11 @@ import pandas as pd
 from datetime import datetime
 
 from api_clients import (
-    buscar_openalex_simple, buscar_crossref_simple, 
+    buscar_openalex_simple, buscar_crossref_simple,
     deduplicar_fuentes, limpiar_texto
 )
 from citations import generar_referencia_apa, generar_cita_apa
-from groq_service import get_groq_key
+from gemini_service import analyze_article
 
 
 # Categorías de análisis
@@ -97,19 +97,21 @@ def preparar_articulos_excel(df):
     return articulos
 
 
-def generar_parrafo_groq(articulo, fuentes, categoria, descripcion):
-    """Genera un párrafo académico usando Groq para análisis de categoría"""
-    key = get_groq_key()
+def generar_parrafo_gemini(articulo, fuentes, categoria, descripcion):
+    """Genera un párrafo académico usando Gemini para análisis de categoría"""
+    import requests
+    import os
 
-    if not key:
-        return "⚠️ **Groq no está configurado.** Configura la variable GROQ_API_KEY."
-    
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        return "⚠️ **Gemini no está configurado.** Configura la variable GEMINI_API_KEY."
+
     contexto = ""
     for i, fuente in enumerate(fuentes, start=1):
         autores = fuente.get("autores", [])
         if isinstance(autores, list):
             autores = ", ".join(autores)
-        
+
         contexto += f"""
 FUENTE {i}
 Título: {fuente.get('titulo', '')}
@@ -120,7 +122,7 @@ DOI: {fuente.get('doi', '')}
 Resumen: {fuente.get('abstract', '')}
 URL: {fuente.get('url', '')}
 """
-    
+
     prompt = f"""
 Actúa como un investigador académico especializado en revisión bibliográfica.
 
@@ -186,31 +188,27 @@ SÍNTESIS:
 REFERENCIAS:
 [Escribe únicamente las referencias correspondientes a las fuentes realmente utilizadas]
 """
-    
+
     try:
-        from groq import Groq
-        client = Groq(api_key=key)
-        
-        respuesta = client.chat.completions.create(
-            model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b"),
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Eres un investigador académico. Debes redactar información basada únicamente en las fuentes entregadas. Nunca inventes información."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.15,
-            max_completion_tokens=2500
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.2},
+        }
+
+        response = requests.post(
+            url,
+            params={"key": api_key},
+            json=payload,
+            timeout=60
         )
-        
-        return respuesta.choices[0].message.content
-    
+        response.raise_for_status()
+        data = response.json()
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+        return text.strip()
+
     except Exception as e:
-        return f"❌ **Error al generar el párrafo con Groq.** `{str(e)}`"
+        return f"❌ **Error al generar el párrafo con Gemini.** `{str(e)}`"
 
 
 def investigar_categoria(df, categoria):
@@ -254,7 +252,7 @@ def investigar_categoria(df, categoria):
     
     # Usar el primer artículo como referencia principal
     articulo_principal = articulos[0]
-    texto = generar_parrafo_groq(articulo_principal, todas_fuentes, categoria, descripcion)
+    texto = generar_parrafo_gemini(articulo_principal, todas_fuentes, categoria, descripcion)
     
     # Guardar resultados
     RESULTADOS_ANALISIS[categoria] = {

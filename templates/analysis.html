@@ -204,6 +204,14 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .category-btn input[type="checkbox"] {
+            display: none;
         }
 
         .category-btn:hover {
@@ -212,7 +220,7 @@
             box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
         }
 
-        .category-btn.active {
+        .category-btn.selected {
             background: linear-gradient(135deg, #ff6b6b, #ffa500);
             color: #0a0e27;
         }
@@ -382,25 +390,64 @@
         <!-- Panel 3: Categorías de análisis -->
         <div class="panel" id="categories-panel" style="display: none;">
             <h2>🔬 3. Seleccionar Categoría de Análisis</h2>
-            <p style="color: #7b9fff; margin-bottom: 15px;">Selecciona qué aspecto de los artículos deseas investigar.</p>
-            
+            <p style="color: #7b9fff; margin-bottom: 15px;">Selecciona qué aspecto de los artículos deseas investigar (puedes seleccionar varias).</p>
+
             <div class="category-grid">
-                <button class="category-btn" onclick="investigateCategory('antecedentes')">📚 Antecedentes</button>
-                <button class="category-btn" onclick="investigateCategory('modelos')">📊 Modelos</button>
-                <button class="category-btn" onclick="investigateCategory('metodologias')">🔬 Metodologías</button>
-                <button class="category-btn" onclick="investigateCategory('metodos')">🧩 Métodos</button>
-                <button class="category-btn" onclick="investigateCategory('experimentos')">🧪 Experimentos</button>
-                <button class="category-btn" onclick="investigateCategory('replicas')">🔁 Réplicas</button>
-                <button class="category-btn" onclick="investigateCategory('tecnicas')">🛠️ Técnicas</button>
-                <button class="category-btn" onclick="investigateCategory('herramientas')">💻 Herramientas</button>
-                <button class="category-btn" onclick="investigateCategory('resultados')">📈 Resultados</button>
-                <button class="category-btn" onclick="investigateCategory('limitaciones')">⚠️ Limitaciones</button>
-                <button class="category-btn" onclick="investigateCategory('recomendaciones')">💡 Recomendaciones</button>
+                <label class="category-btn">
+                    <input type="checkbox" value="antecedentes" onchange="updateSelection()">
+                    <span>📚 Antecedentes</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="modelos" onchange="updateSelection()">
+                    <span>📊 Modelos</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="metodologias" onchange="updateSelection()">
+                    <span>🔬 Metodologías</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="metodos" onchange="updateSelection()">
+                    <span>🧩 Métodos</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="experimentos" onchange="updateSelection()">
+                    <span>🧪 Experimentos</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="replicas" onchange="updateSelection()">
+                    <span>🔁 Réplicas</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="tecnicas" onchange="updateSelection()">
+                    <span>🛠️ Técnicas</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="herramientas" onchange="updateSelection()">
+                    <span>💻 Herramientas</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="resultados" onchange="updateSelection()">
+                    <span>📈 Resultados</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="limitaciones" onchange="updateSelection()">
+                    <span>⚠️ Limitaciones</span>
+                </label>
+                <label class="category-btn">
+                    <input type="checkbox" value="recomendaciones" onchange="updateSelection()">
+                    <span>💡 Recomendaciones</span>
+                </label>
             </div>
-            
+
             <div class="btn-group" style="margin-top: 25px;">
-                <button class="btn btn-primary" onclick="investigateAll()">
-                    🍅 INVESTIGAR TODAS LAS CATEGORÍAS
+                <button class="btn btn-primary" onclick="investigateSelected()">
+                    🍅 INVESTIGAR CATEGORÍAS SELECCIONADAS
+                </button>
+                <button class="btn btn-secondary" onclick="selectAll()">
+                    ✅ Seleccionar Todas
+                </button>
+                <button class="btn btn-secondary" onclick="deselectAll()">
+                    ❌ Deseleccionar Todas
                 </button>
             </div>
         </div>
@@ -507,16 +554,57 @@
             });
         }
 
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.category-btn input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                const label = checkbox.closest('.category-btn');
+                if (checkbox.checked) {
+                    label.classList.add('selected');
+                } else {
+                    label.classList.remove('selected');
+                }
+            });
+        }
+
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('.category-btn input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelection();
+        }
+
+        function deselectAll() {
+            const checkboxes = document.querySelectorAll('.category-btn input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelection();
+        }
+
+        function investigateSelected() {
+            if (loadedArticles.length === 0) {
+                alert('Primero carga un archivo Excel con artículos.');
+                return;
+            }
+
+            const checkboxes = document.querySelectorAll('.category-btn input[type="checkbox"]:checked');
+            const selectedCategories = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedCategories.length === 0) {
+                alert('Por favor selecciona al menos una categoría.');
+                return;
+            }
+
+            performMultipleAnalysis(selectedCategories);
+        }
+
         function investigateCategory(category) {
             if (loadedArticles.length === 0) {
                 alert('Primero carga un archivo Excel con artículos.');
                 return;
             }
-            
-            // Activar botón seleccionado
-            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
+
             performAnalysis(category);
         }
 
@@ -525,8 +613,86 @@
                 alert('Primero carga un archivo Excel con artículos.');
                 return;
             }
-            
-            performAnalysis('all');
+
+            selectAll();
+            const checkboxes = document.querySelectorAll('.category-btn input[type="checkbox"]:checked');
+            const selectedCategories = Array.from(checkboxes).map(cb => cb.value);
+            performMultipleAnalysis(selectedCategories);
+        }
+
+        function performMultipleAnalysis(categories) {
+            const resultsArea = document.getElementById('results-area');
+            const loadingDiv = document.getElementById('analysis-loading');
+            const messageDiv = document.getElementById('analysis-message');
+            const contentDiv = document.getElementById('analysis-content');
+            const sourcesSection = document.getElementById('sources-section');
+
+            resultsArea.classList.add('active');
+            loadingDiv.classList.add('active');
+            messageDiv.innerHTML = '';
+            contentDiv.style.display = 'none';
+            sourcesSection.style.display = 'none';
+
+            let allResults = [];
+            let allSources = [];
+            let completed = 0;
+
+            // Procesar cada categoría secuencialmente
+            async function processCategory(index) {
+                if (index >= categories.length) {
+                    // Todas las categorías completadas
+                    loadingDiv.classList.remove('active');
+
+                    const combinedContent = allResults.join('\n\n---\n\n');
+                    currentAnalysisContent = combinedContent;
+                    currentSources = allSources;
+
+                    messageDiv.innerHTML = `<div class="success">✅ Análisis completado para ${categories.length} categorías seleccionadas</div>`;
+
+                    contentDiv.innerHTML = combinedContent;
+                    contentDiv.style.display = 'block';
+
+                    if (allSources.length > 0) {
+                        sourcesSection.style.display = 'block';
+                        const sourcesBody = document.getElementById('sources-body');
+                        sourcesBody.innerHTML = allSources.map(fuente => `
+                            <tr>
+                                <td>${fuente['Título'] || ''}</td>
+                                <td>${fuente['Autores'] || ''}</td>
+                                <td>${fuente['Año'] || ''}</td>
+                                <td>${fuente['Revista'] || ''}</td>
+                                <td>${fuente['DOI'] || ''}</td>
+                                <td>${fuente['Fuente'] || ''}</td>
+                            </tr>
+                        `).join('');
+                    }
+                    return;
+                }
+
+                const category = categories[index];
+                loadingDiv.querySelector('p').textContent = `Analizando categoría ${index + 1}/${categories.length}: ${category}...`;
+
+                try {
+                    const response = await fetch('/analysis/investigate_category', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ articulos: loadedArticles, category: category })
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        allResults.push(data.mensaje);
+                        allSources = allSources.concat(data.fuentes || []);
+                    }
+                } catch (error) {
+                    allResults.push(`## ${category}\n\n❌ Error: ${error.message}`);
+                }
+
+                completed++;
+                processCategory(index + 1);
+            }
+
+            processCategory(0);
         }
 
         function performAnalysis(category) {
