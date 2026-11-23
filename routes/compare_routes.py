@@ -1,9 +1,41 @@
 from flask import Blueprint, render_template, request, jsonify
 import pandas as pd
 import os
+import re
 from services.gemini_service import analyze_article, compare_articles, ask_question_about_comparison, FIELD_LABELS
 
 compare_bp = Blueprint('compare', __name__, url_prefix='/compare')
+
+
+def _local_comparison(articles, selected_fields):
+    """Comparación de respaldo local cuando Gemini no está disponible."""
+    stopwords = {
+        "para", "como", "los", "las", "una", "uno", "del", "con", "por", "que", "sus",
+        "sobre", "entre", "desde", "este", "esta", "más", "menos", "artículo", "información",
+        "disponible", "no", "se", "en", "de", "y", "o", "el", "la", "un", "al", "es",
+    }
+    comparisons = []
+    for field in selected_fields:
+        token_sets = []
+        for article in articles:
+            value = str(article.get(field) or "")
+            tokens = {w.lower() for w in re.findall(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]{5,}", value) if w.lower() not in stopwords}
+            if tokens:
+                token_sets.append(tokens)
+        common = set.intersection(*token_sets) if len(token_sets) > 1 else set()
+        common_text = ", ".join(sorted(common)[:8])
+        authors = "; ".join(
+            f"{a.get('autores') or 'Autor no indicado'} ({a.get('titulo', '')})"
+            for a in articles
+        )
+        comparisons.append({
+            "aspecto": FIELD_LABELS.get(field, field),
+            "articulos_autores": authors,
+            "semejanzas": f"Términos compartidos en los registros: {common_text}." if common_text else "No se detectó coincidencia textual suficiente entre los registros.",
+            "diferencias": "Los artículos presentan contenidos específicos diferentes; se requiere una respuesta de Gemini para describir diferencias conceptuales con mayor precisión.",
+            "conclusion": "Comparación local generada automáticamente porque el servicio de Gemini no estuvo disponible.",
+        })
+    return comparisons
 
 @compare_bp.route('/')
 def index():
@@ -125,7 +157,18 @@ def compare():
             print("Información completada con Gemini")
         
         # Usar Gemini para comparar los artículos
-        comparisons = compare_articles(articles, selected_fields)
+        try:
+            comparisons = compare_articles(articles, selected_fields)
+        except Exception as gemini_error:
+            print(f"Gemini no disponible para comparar, usando respaldo local: {gemini_error}")
+            comparisons = _local_comparison(articles, selected_fields)
+            return jsonify({
+                "success": True,
+                "comparisons": comparisons,
+                "enriched": len(missing_fields) > 0,
+                "source": "local",
+                "notice": "Gemini no estuvo disponible; se generó una comparación local con los datos disponibles."
+            })
         
         return jsonify({
             "success": True,

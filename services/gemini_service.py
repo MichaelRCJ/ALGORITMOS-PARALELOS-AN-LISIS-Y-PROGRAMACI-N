@@ -10,6 +10,31 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
 MISSING_INFO = "No disponible"
 
+# Modelos de texto en orden de preferencia; si uno falla se pasa al siguiente.
+MODELS_FALLBACK = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
+    "gemini-3-flash-preview",
+    "gemini-3.6-flash",
+    "gemini-3.7-flash",
+    "gemini-3.8-flash",
+]
+
+
+def _candidate_models(model=None):
+    """Modelo solicitado primero; luego la lista de respaldo sin duplicados."""
+    requested = (model or os.environ.get("GEMINI_MODEL", DEFAULT_MODEL) or "").strip()
+    models = [requested] if requested else []
+    for candidate in MODELS_FALLBACK:
+        if candidate not in models:
+            models.append(candidate)
+    return models
+
 
 class GeminiServiceError(RuntimeError):
     """Error controlado al comunicarse con Gemini."""
@@ -87,57 +112,50 @@ def analyze_article(article, selected_fields=None, model=None, timeout=60, max_r
     selected_fields = [field for field in selected_fields if field in FIELD_LABELS]
     if not selected_fields:
         raise GeminiServiceError("No se seleccionaron aspectos para analizar")
-    
-    # Usar solo el modelo que funciona
-    model = model or os.environ.get("GEMINI_MODEL", DEFAULT_MODEL).strip()
-    if model not in ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-flash-latest", "gemini-pro-latest"]:
-        model = "gemini-3.5-flash-lite"
-    
-    url = GEMINI_API_URL.format(model=model)
+
     payload = {
         "contents": [{"parts": [{"text": _prompt(article, selected_fields)}]}],
         "generationConfig": {
             "temperature": 0.1,
+            "responseMimeType": "application/json",
         },
     }
 
     last_error = None
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(
-                url,
-                params={"key": api_key},
-                json=payload,
-                timeout=timeout,
-            )
-            if response.status_code == 429:
-                # Rate limit - esperar más tiempo
-                if attempt < max_retries - 1:
-                    retry_after = response.headers.get("Retry-After")
-                    delay = float(retry_after) if retry_after else 30
-                    print(f"Rate limit (429), esperando {delay} segundos...")
-                    time.sleep(min(delay, 60))
+    for candidate in _candidate_models(model):
+        url = GEMINI_API_URL.format(model=candidate)
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(
+                    url,
+                    params={"key": api_key},
+                    json=payload,
+                    timeout=timeout,
+                )
+                if response.status_code == 429:
+                    # Rate limit - esperar más tiempo
+                    if attempt < max_retries - 1:
+                        retry_after = response.headers.get("Retry-After")
+                        delay = float(retry_after) if retry_after else 30
+                        print(f"Rate limit (429), esperando {delay} segundos...")
+                        time.sleep(min(delay, 60))
+                        continue
+                if response.status_code >= 500:
+                    raise GeminiServiceError(f"Error {response.status_code} del modelo {candidate}")
+                if response.status_code == 404:
+                    raise GeminiServiceError(f"Modelo {candidate} no encontrado")
+                response.raise_for_status()
+                data = response.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                result = _extract_json(text)
+                print(f"Éxito con modelo: {candidate}")
+                return {key: result.get(key) or MISSING_INFO for key in selected_fields}
+            except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, GeminiServiceError) as exc:
+                last_error = exc
+                if attempt < max_retries - 1 and isinstance(exc, requests.RequestException):
+                    time.sleep(min(2 ** attempt, 30))
                     continue
-            if response.status_code >= 500:
-                if attempt < max_retries - 1:
-                    retry_after = response.headers.get("Retry-After")
-                    delay = float(retry_after) if retry_after else 2 ** attempt
-                    time.sleep(min(delay, 30))
-                    continue
-            if response.status_code == 404:
-                raise GeminiServiceError(f"Modelo {model} no encontrado")
-            response.raise_for_status()
-            data = response.json()
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            result = _extract_json(text)
-            print(f"Éxito con modelo: {model}")
-            return {key: result.get(key) or MISSING_INFO for key in selected_fields}
-        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, GeminiServiceError) as exc:
-            last_error = exc
-            if attempt < max_retries - 1 and isinstance(exc, requests.RequestException):
-                time.sleep(min(2 ** attempt, 30))
-                continue
-            break
+                break
 
     raise GeminiServiceError(str(last_error or "No fue posible analizar el artículo"))
 
@@ -170,55 +188,50 @@ REGISTROS:
 {json.dumps(records, ensure_ascii=False)[:30000]}"""
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.1},
+        "generationConfig": {
+            "temperature": 0.1,
+            "responseMimeType": "application/json",
+        },
     }
     
-    # Usar solo el modelo que funciona
-    model = model or os.environ.get("GEMINI_MODEL", DEFAULT_MODEL).strip()
-    if model not in ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-flash-latest", "gemini-pro-latest"]:
-        model = "gemini-3.5-flash-lite"
-    
-    url = GEMINI_API_URL.format(model=model)
     last_error = None
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(url, params={"key": api_key}, json=payload, timeout=timeout)
-            if response.status_code == 429:
-                if attempt < max_retries - 1:
-                    retry_after = response.headers.get("Retry-After")
-                    delay = float(retry_after) if retry_after else 30
-                    print(f"Rate limit (429), esperando {delay} segundos...")
-                    time.sleep(min(delay, 60))
+    for candidate in _candidate_models(model):
+        url = GEMINI_API_URL.format(model=candidate)
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(url, params={"key": api_key}, json=payload, timeout=timeout)
+                if response.status_code == 429:
+                    if attempt < max_retries - 1:
+                        retry_after = response.headers.get("Retry-After")
+                        delay = float(retry_after) if retry_after else 30
+                        print(f"Rate limit (429), esperando {delay} segundos...")
+                        time.sleep(min(delay, 60))
+                        continue
+                if response.status_code >= 500:
+                    raise GeminiServiceError(f"Error {response.status_code} del modelo {candidate}")
+                if response.status_code == 404:
+                    raise GeminiServiceError(f"Modelo {candidate} no encontrado")
+                response.raise_for_status()
+                data = response.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                print(f"Respuesta de Gemini (primeros 500 caracteres): {text[:500]}")
+                result = _extract_json(text)
+                print(f"JSON extraído: {result}")
+                print(f"Tipo de result: {type(result)}")
+                print(f"Claves en result: {result.keys() if isinstance(result, dict) else 'no es dict'}")
+                comparisons = result.get("comparaciones") if isinstance(result, dict) else None
+                print(f"Tipo de comparisons: {type(comparisons)}")
+                if not isinstance(comparisons, list):
+                    print(f"ERROR: 'comparisons' no es una lista, es: {type(comparisons)}")
+                    raise GeminiServiceError("Gemini no devolvió una lista comparativa válida")
+                print(f"Éxito con modelo: {candidate}")
+                return comparisons
+            except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, GeminiServiceError) as exc:
+                last_error = exc
+                if attempt < max_retries - 1 and isinstance(exc, requests.RequestException):
+                    time.sleep(min(5 * (attempt + 1), 30))
                     continue
-            if response.status_code >= 500:
-                if attempt < max_retries - 1:
-                    retry_after = response.headers.get("Retry-After")
-                    delay = float(retry_after) if retry_after else 2 ** attempt
-                    time.sleep(min(delay, 30))
-                    continue
-            if response.status_code == 404:
-                raise GeminiServiceError(f"Modelo {model} no encontrado")
-            response.raise_for_status()
-            data = response.json()
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            print(f"Respuesta de Gemini (primeros 500 caracteres): {text[:500]}")
-            result = _extract_json(text)
-            print(f"JSON extraído: {result}")
-            print(f"Tipo de result: {type(result)}")
-            print(f"Claves en result: {result.keys() if isinstance(result, dict) else 'no es dict'}")
-            comparisons = result.get("comparaciones") if isinstance(result, dict) else None
-            print(f"Tipo de comparisons: {type(comparisons)}")
-            if not isinstance(comparisons, list):
-                print(f"ERROR: 'comparisons' no es una lista, es: {type(comparisons)}")
-                raise GeminiServiceError("Gemini no devolvió una lista comparativa válida")
-            print(f"Éxito con modelo: {model}")
-            return comparisons
-        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, GeminiServiceError) as exc:
-            last_error = exc
-            if attempt < max_retries - 1 and isinstance(exc, requests.RequestException):
-                time.sleep(min(5 * (attempt + 1), 30))
-                continue
-            break
+                break
     raise GeminiServiceError(str(last_error or "No fue posible comparar los artículos"))
 
 
@@ -273,41 +286,33 @@ INSTRUCCIONES:
         "generationConfig": {"temperature": 0.3},
     }
 
-    model = model or os.environ.get("GEMINI_MODEL", DEFAULT_MODEL).strip()
-    if model not in ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-flash-latest", "gemini-pro-latest"]:
-        model = "gemini-3.5-flash-lite"
-
-    url = GEMINI_API_URL.format(model=model)
     last_error = None
-
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(url, params={"key": api_key}, json=payload, timeout=timeout)
-            if response.status_code == 429:
-                if attempt < max_retries - 1:
-                    retry_after = response.headers.get("Retry-After")
-                    delay = float(retry_after) if retry_after else 30
-                    print(f"Rate limit (429), esperando {delay} segundos...")
-                    time.sleep(min(delay, 60))
+    for candidate in _candidate_models(model):
+        url = GEMINI_API_URL.format(model=candidate)
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(url, params={"key": api_key}, json=payload, timeout=timeout)
+                if response.status_code == 429:
+                    if attempt < max_retries - 1:
+                        retry_after = response.headers.get("Retry-After")
+                        delay = float(retry_after) if retry_after else 30
+                        print(f"Rate limit (429), esperando {delay} segundos...")
+                        time.sleep(min(delay, 60))
+                        continue
+                if response.status_code >= 500:
+                    raise GeminiServiceError(f"Error {response.status_code} del modelo {candidate}")
+                if response.status_code == 404:
+                    raise GeminiServiceError(f"Modelo {candidate} no encontrado")
+                response.raise_for_status()
+                data = response.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                print(f"Éxito respondiendo pregunta con modelo: {candidate}")
+                return text.strip()
+            except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, GeminiServiceError) as exc:
+                last_error = exc
+                if attempt < max_retries - 1 and isinstance(exc, requests.RequestException):
+                    time.sleep(min(2 ** attempt, 30))
                     continue
-            if response.status_code >= 500:
-                if attempt < max_retries - 1:
-                    retry_after = response.headers.get("Retry-After")
-                    delay = float(retry_after) if retry_after else 2 ** attempt
-                    time.sleep(min(delay, 30))
-                    continue
-            if response.status_code == 404:
-                raise GeminiServiceError(f"Modelo {model} no encontrado")
-            response.raise_for_status()
-            data = response.json()
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            print(f"Éxito respondiendo pregunta con modelo: {model}")
-            return text.strip()
-        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, GeminiServiceError) as exc:
-            last_error = exc
-            if attempt < max_retries - 1 and isinstance(exc, requests.RequestException):
-                time.sleep(min(2 ** attempt, 30))
-                continue
-            break
+                break
 
     raise GeminiServiceError(str(last_error or "No fue posible responder la pregunta"))
