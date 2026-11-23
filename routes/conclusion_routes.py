@@ -10,6 +10,7 @@ import pandas as pd
 import io
 from flask import Blueprint, jsonify, render_template, request, send_file
 from exports.export_handlers import export_to_word, export_to_pdf, export_to_excel
+from services.gemini_service import MODELS_FALLBACK, _candidate_models
 
 # Crear Blueprint para las rutas de conclusiones
 conclusion_bp = Blueprint('conclusion', __name__, url_prefix='/conclusion')
@@ -135,30 +136,38 @@ REFERENCIAS
 [Escribe aquí las referencias en formato APA 7]
 """
 
-    try:
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.3},
-        }
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.3},
+    }
 
-        response = requests.post(
-            url,
-            params={"key": api_key},
-            json=payload,
-            timeout=90
-        )
-        response.raise_for_status()
-        data = response.json()
-        text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    # Cascada de modelos: si uno falla (503, 404, timeout), pasa al siguiente
+    ultimo_error = None
+    for modelo in _candidate_models():
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent"
+            response = requests.post(
+                url,
+                params={"key": api_key},
+                json=payload,
+                timeout=90
+            )
+            if response.status_code >= 500 or response.status_code == 404:
+                ultimo_error = f"Error {response.status_code} del modelo {modelo}"
+                continue
+            response.raise_for_status()
+            data = response.json()
+            text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
-        return jsonify({
-            "success": True,
-            "conclusion": text
-        })
+            return jsonify({
+                "success": True,
+                "conclusion": text
+            })
+        except Exception as e:
+            ultimo_error = str(e)
+            continue
 
-    except Exception as e:
-        return jsonify({"error": f"Error generando conclusiones: {str(e)}"}), 500
+    return jsonify({"error": f"Error generando conclusiones: {ultimo_error}"}), 500
 
 
 @conclusion_bp.route('/export_word', methods=['POST'])
