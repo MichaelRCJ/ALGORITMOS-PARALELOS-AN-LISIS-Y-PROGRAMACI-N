@@ -7,15 +7,16 @@ Basado en la funcionalidad de análisis bibliográfico inteligente
 import re
 import json
 import os
+import time
 import pandas as pd
 from datetime import datetime
 
-from api_clients import (
+from utils.api_clients import (
     buscar_openalex_simple, buscar_crossref_simple,
     deduplicar_fuentes, limpiar_texto
 )
 from citations import generar_referencia_apa, generar_cita_apa
-from gemini_service import analyze_article
+from services.gemini_service import analyze_article
 
 
 # Categorías de análisis
@@ -39,6 +40,64 @@ RESULTADOS_ANALISIS = {}
 FUENTES_ACTUALES = []
 ARTICULOS_BUSCADOS = []
 CATEGORIA_ACTUAL = ""
+
+_ANALYSIS_ENV_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "analysis_api.env"
+)
+
+
+def _cargar_analysis_env():
+    """Lee analysis_api.env (API dedicada de esta ventana). Prioridad sobre .env."""
+    config = {}
+    try:
+        if os.path.exists(_ANALYSIS_ENV_PATH):
+            with open(_ANALYSIS_ENV_PATH, "r", encoding="utf-8") as f:
+                for linea in f:
+                    linea = linea.strip()
+                    if not linea or linea.startswith("#") or "=" not in linea:
+                        continue
+                    clave, valor = linea.split("=", 1)
+                    valor = valor.strip().strip('"').strip("'")
+                    if valor and "pega_aqui" not in valor.lower():
+                        config[clave.strip()] = valor
+    except OSError:
+        pass
+    return config
+
+
+def _gemini_api_key():
+    dedicada = _cargar_analysis_env().get("GEMINI_API_KEY", "").strip()
+    return dedicada or os.environ.get("GEMINI_API_KEY", "").strip()
+
+
+# Modelos de texto disponibles en la API, en orden de preferencia.
+# Si uno falla (404, timeout, error), se pasa automáticamente al siguiente.
+_MODELOS_FALLBACK = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
+    "gemini-3-flash-preview",
+    "gemini-3.6-flash",
+    "gemini-3.7-flash",
+    "gemini-3.8-flash",
+]
+
+
+def _gemini_modelos():
+    """Modelo configurado primero; luego la lista de respaldo (sin duplicados)."""
+    modelos = []
+    dedicado = _cargar_analysis_env().get("GEMINI_MODEL", "").strip()
+    if dedicado:
+        modelos.append(dedicado)
+    for m in _MODELOS_FALLBACK:
+        if m not in modelos:
+            modelos.append(m)
+    return modelos
 
 
 def preparar_articulos_excel(df):
@@ -102,9 +161,9 @@ def generar_parrafo_gemini(articulo, fuentes, categoria, descripcion):
     import requests
     import os
 
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    api_key = _gemini_api_key()
     if not api_key:
-        return "⚠️ **Gemini no está configurado.** Configura la variable GEMINI_API_KEY."
+        return "⚠️ **Gemini no está configurado.** Configura GEMINI_API_KEY en analysis_api.env o en el .env principal."
 
     contexto = ""
     for i, fuente in enumerate(fuentes, start=1):
@@ -144,71 +203,97 @@ FUENTES ACADÉMICAS ENCONTRADAS:
 ==================================================
 OBJETIVO
 ==================================================
-Necesito que redactes un texto académico que EXPLIQUE
-qué dicen las investigaciones encontradas respecto
-a la categoría solicitada.
-
-NO quiero solamente una referencia bibliográfica.
-NO quiero una lista.
-NO quiero que repitas solamente el título.
-
-Quiero un PÁRRAFO ACADÉMICO redactado de manera natural,
-coherente y formal.
+Eres un investigador académico redactando un análisis
+bibliográfico SERIO y COMPLETO para una revisión
+científica. No quiero una respuesta corta ni superficial:
+quiero un análisis estructurado, profundo y bien
+organizado que un lector pueda citar en un paper.
 
 ==================================================
 REGLAS
 ==================================================
-1. Escribe exclusivamente en español.
+1. Escribe exclusivamente en español, con tono académico formal.
 2. Utiliza únicamente información presente en los títulos, autores, años y resúmenes proporcionados.
-3. NO inventes resultados.
-4. NO inventes metodologías.
-5. NO inventes estadísticas.
-6. NO inventes conclusiones.
-7. NO inventes autores.
-8. NO inventes DOI.
-9. Si el resumen no contiene información suficiente, indícalo de manera prudente.
-10. Relaciona la información de las fuentes con la categoría solicitada.
-11. El texto debe tener aproximadamente entre 120 y 200 palabras.
-12. Utiliza citas APA 7 dentro del texto.
-13. Una fuente: (Apellido, año)
-14. Dos autores: (Apellido & Apellido, año)
-15. Tres o más: (Apellido et al., año)
-16. No coloques una cita si no puedes identificar correctamente la fuente.
-17. No coloques referencias inventadas.
+3. NO inventes resultados, metodologías, estadísticas, conclusiones, autores ni DOI.
+4. Si el resumen no contiene información suficiente para un punto, reconócelo de manera prudente.
+5. Cita en formato APA 7 dentro del texto:
+   - Una fuente: (Apellido, año)
+   - Dos autores: (Apellido & Apellido, año)
+   - Tres o más: (Apellido et al., año)
+6. Analiza TODAS las fuentes proporcionadas, no solo algunas.
+7. Establece relaciones entre las fuentes: qué comparten, en qué difieren,
+   qué enfoques coexisten y cómo se complementan o contradicen.
+8. Identifica vacíos, tendencias y posibles líneas de trabajo futuro
+   que se desprendan de las fuentes.
+9. Extensión total: entre 500 y 800 palabras de análisis
+   (sin contar las referencias).
 
 ==================================================
-FORMATO
+FORMATO OBLIGATORIO
 ==================================================
-PÁRRAFO:
-[Escribe aquí el párrafo académico]
+Devuelve el texto EXACTAMENTE con esta estructura de secciones:
 
-SÍNTESIS:
-[Escribe una síntesis de 2 o 3 oraciones]
+## 1. Panorama general
+[Párrafo introductorio: qué estudia la categoría, qué tan presente
+está en las fuentes y qué papel juega en el campo. 80-120 palabras]
 
-REFERENCIAS:
-[Escribe únicamente las referencias correspondientes a las fuentes realmente utilizadas]
+## 2. Análisis de las fuentes
+[Analiza las fuentes agrupándolas por enfoque, corriente o aporte.
+Cada grupo o fuente relevante debe citarse en APA dentro del texto.
+Explica QUÉ aporta cada una a la categoría, no solo QUÉ dice su título.
+120-250 palabras]
+
+## 3. Coincidencias y discrepancias
+[Qué concuerdan las fuentes entre sí y en qué difieren: metodologías,
+enfoques, resultados o conclusiones opuestas. Sé específico. 80-150 palabras]
+
+## 4. Vacíos y oportunidades de investigación
+[Qué NO cubren las fuentes, qué preguntas quedan abiertas y qué
+líneas futuras sugieren los propios textos. 60-120 palabras]
+
+## 5. Síntesis
+[Conclusión integradora de 2-4 oraciones que responda: ¿qué se sabe
+hoy sobre esta categoría según estas fuentes y por qué importa?]
+
+## Referencias
+[Lista ÚNICAMENTE las fuentes realmente utilizadas, en formato APA 7,
+una por línea, precedidas por "- "]
 """
 
-    try:
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.2},
-        }
+    import requests
 
-        response = requests.post(
-            url,
-            params={"key": api_key},
-            json=payload,
-            timeout=60
-        )
-        response.raise_for_status()
-        data = response.json()
-        text = data["candidates"][0]["content"]["parts"][0]["text"]
-        return text.strip()
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.2},
+    }
 
-    except Exception as e:
-        return f"❌ **Error al generar el párrafo con Gemini.** `{str(e)}`"
+    # Recorre la lista de modelos: si uno falla, pasa al siguiente.
+    # Por modelo: 2 intentos solo para errores de red/timeout;
+    # los errores HTTP (404, 429, etc.) pasan directo al siguiente modelo.
+    ultimo_error = None
+    for modelo in _gemini_modelos():
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent"
+        for intento in range(2):
+            try:
+                response = requests.post(
+                    url,
+                    params={"key": api_key},
+                    json=payload,
+                    timeout=120
+                )
+                response.raise_for_status()
+                data = response.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                return text.strip()
+            except requests.HTTPError as e:
+                ultimo_error = e
+                break
+            except Exception as e:
+                ultimo_error = e
+                if intento == 0:
+                    time.sleep(3)
+
+    return f"❌ **Error al generar el párrafo con Gemini.** `{str(ultimo_error)}`"
 
 
 def investigar_categoria(df, categoria):

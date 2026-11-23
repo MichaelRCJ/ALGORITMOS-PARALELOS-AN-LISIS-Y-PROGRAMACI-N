@@ -59,7 +59,8 @@ def _prompt(article, selected_fields):
 
 Devuelve exclusivamente un objeto JSON válido, sin Markdown ni texto adicional, con exactamente estas claves:
 {keys}.
-Usa la información del Excel. Si no encuentras información suficiente para un aspecto, escribe exactamente "No disponible". No repitas el título como respuesta ni inventes datos.
+
+Para CADA aspecto escribe un párrafo académico completo de 2 a 4 oraciones, objetivo y bien redactado: qué dice la evidencia, cómo se relaciona con el aspecto solicitado y, cuando aplique, sus implicaciones. NUNCA respondas "No disponible", ni una sola palabra, ni repitas el título. Si la información del resumen es escasa, describe con prudencia lo que pueda inferirse del título, autores, año, DOI y resumen, y señala brevemente la limitación de la evidencia. No inventes datos que no estén sustentados en la información entregada.
 
 TÍTULO:
 {article.get('titulo', '')}

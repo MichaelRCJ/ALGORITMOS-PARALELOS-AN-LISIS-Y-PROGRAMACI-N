@@ -12,80 +12,147 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --vi: #8b5cf6; --mg: #d946ef; --cy: #22d3ee; --gd: #fbbf24; --gn: #34d399;
+        }
+
         body {
             font-family: 'Rajdhani', sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1333 100%);
-            color: #e0e6ff;
+            background: linear-gradient(160deg, #0b0620 0%, #171036 50%, #1e1145 100%);
+            color: #f1eaff;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(139, 92, 246, .28), transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(217, 70, 239, .20), transparent 45%),
+                radial-gradient(circle at 60% 40%, rgba(34, 211, 238, .10), transparent 40%);
+            animation: bgFloat 18s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            content: '✦  ❖  ✧  ⬡  ✦  ❖  ✧  ⬡  ✦  ❖  ✧  ⬡  ✦  ❖  ✧  ⬡  ';
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            color: rgba(251, 191, 36, .05); font-size: 22px; letter-spacing: 60px;
+            white-space: pre-wrap; overflow: hidden; user-select: none;
+        }
+
+        @keyframes bgFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(3%, -3%) scale(1.08); }
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         header {
             text-align: center;
-            padding: 40px 20px;
+            padding: 44px 20px 34px;
             position: relative;
+            animation: fadeUp .8s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        header::before {
+            content: '✦ ❖ ✦';
+            display: block;
+            color: var(--gd);
+            font-size: 1.1rem;
+            letter-spacing: 14px;
+            margin-bottom: 14px;
+            text-shadow: 0 0 16px rgba(251, 191, 36, .6);
+            animation: twinkle 2.8s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: .55; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.12); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         h1 {
             font-family: 'Orbitron', sans-serif;
             font-size: 3rem;
             font-weight: 900;
-            background: linear-gradient(90deg, #00f5ff, #7b2dff, #00f5ff);
-            background-size: 200% auto;
+            background: linear-gradient(90deg, var(--cy), var(--vi), var(--mg), var(--cy));
+            background-size: 250% auto;
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient 3s ease infinite;
+            animation: gradient 5s linear infinite, fadeUp .8s cubic-bezier(.22,1,.36,1) both;
             text-transform: uppercase;
             letter-spacing: 4px;
             margin-bottom: 10px;
+            filter: drop-shadow(0 0 18px rgba(139, 92, 246, .5));
         }
 
         @keyframes gradient {
-            0%, 100% { background-position: 0% center; }
-            50% { background-position: 200% center; }
+            0% { background-position: 0% center; }
+            100% { background-position: 250% center; }
         }
 
         .subtitle {
             font-size: 1.2rem;
-            color: #7b9fff;
+            color: #c4b5fd;
             letter-spacing: 2px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
+            text-shadow: 0 0 12px rgba(196, 181, 253, .4);
         }
 
         .nav-link {
             display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid #ff6b6b;
-            border-radius: 10px;
-            color: #ff6b6b;
+            margin: 6px 8px;
+            padding: 11px 22px;
+            background: rgba(139, 92, 246, 0.16);
+            border: 1px solid var(--vi);
+            border-radius: 12px;
+            color: #c4b5fd;
             text-decoration: none;
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
             transition: all 0.3s ease;
+            animation: fadeUp .7s .15s both;
         }
 
         .nav-link:hover {
-            background: rgba(255, 107, 107, 0.4);
-            box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+            background: var(--vi);
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 0 26px rgba(139, 92, 246, 0.6);
         }
 
         .search-panel {
-            background: rgba(13, 19, 51, 0.8);
-            border: 2px solid #00f5ff;
-            border-radius: 20px;
-            padding: 40px;
+            background: rgba(23, 16, 54, 0.78);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 22px;
+            padding: 42px;
             margin-bottom: 30px;
-            box-shadow: 0 0 40px rgba(0, 245, 255, 0.2), inset 0 0 60px rgba(0, 245, 255, 0.05);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.18), inset 0 1px 0 rgba(255,255,255,.06);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp .7s .25s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .search-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 8%; right: 8%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cy), var(--mg), var(--gd), transparent);
+            border-radius: 2px;
         }
 
         .form-group {
@@ -95,8 +162,8 @@
         label {
             display: block;
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.9rem;
-            color: #00f5ff;
+            font-size: 0.88rem;
+            color: var(--cy);
             margin-bottom: 8px;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -108,23 +175,29 @@
         select {
             width: 100%;
             padding: 15px 20px;
-            background: rgba(0, 245, 255, 0.05);
-            border: 1px solid #00f5ff;
-            border-radius: 10px;
-            color: #e0e6ff;
+            background: rgba(139, 92, 246, 0.07);
+            border: 1px solid rgba(139, 92, 246, 0.45);
+            border-radius: 12px;
+            color: #f1eaff;
             font-family: 'Rajdhani', sans-serif;
             font-size: 1rem;
             transition: all 0.3s ease;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(196, 181, 253, .45);
         }
 
         input:focus,
         textarea:focus,
         select:focus {
             outline: none;
-            border-color: #7b2dff;
-            box-shadow: 0 0 20px rgba(123, 45, 255, 0.3);
-            background: rgba(123, 45, 255, 0.1);
+            border-color: var(--mg);
+            box-shadow: 0 0 24px rgba(217, 70, 239, 0.35);
+            background: rgba(217, 70, 239, 0.08);
         }
+
+        select option { background: #171036; color: #f1eaff; }
 
         textarea {
             min-height: 100px;
@@ -142,64 +215,91 @@
             align-items: center;
             gap: 10px;
             margin-top: 10px;
+            padding: 12px 16px;
+            background: rgba(34, 211, 238, 0.06);
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-group:hover {
+            border-color: rgba(34, 211, 238, 0.55);
+            box-shadow: 0 0 18px rgba(34, 211, 238, 0.15);
         }
 
         input[type="checkbox"] {
             width: 20px;
             height: 20px;
-            accent-color: #00f5ff;
+            accent-color: var(--mg);
             cursor: pointer;
         }
 
         .checkbox-group label {
             margin: 0;
             cursor: pointer;
+            color: #e9d5ff;
+            font-size: 1.05rem;
+            letter-spacing: .5px;
         }
 
         .btn {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
-            padding: 15px 40px;
+            padding: 15px 38px;
             border: none;
-            border-radius: 10px;
+            border-radius: 13px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
+            letter-spacing: 1.5px;
+            transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
             position: relative;
             overflow: hidden;
         }
 
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -60%; left: -80%;
+            width: 50%; height: 220%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent);
+            transform: skewX(-20deg);
+            transition: left .55s ease;
+        }
+
+        .btn:hover::after { left: 150%; }
+
         .btn-primary {
-            background: linear-gradient(135deg, #00f5ff, #7b2dff);
-            color: #0a0e27;
-            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+            background: linear-gradient(135deg, var(--vi), var(--mg));
+            color: #fff;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.45);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 50px rgba(0, 245, 255, 0.6);
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 0 50px rgba(217, 70, 239, 0.6);
         }
 
         .btn-secondary {
-            background: rgba(123, 45, 255, 0.2);
-            border: 2px solid #7b2dff;
-            color: #7b2dff;
+            background: rgba(251, 191, 36, 0.12);
+            border: 2px solid var(--gd);
+            color: var(--gd);
         }
 
         .btn-secondary:hover {
-            background: rgba(123, 45, 255, 0.4);
-            box-shadow: 0 0 30px rgba(123, 45, 255, 0.4);
+            background: rgba(251, 191, 36, 0.28);
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
-            color: #0a0e27;
+            background: linear-gradient(135deg, var(--gn), #22d3ee);
+            color: #06231a;
         }
 
         .btn-success:hover {
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 0 40px rgba(52, 211, 153, 0.55);
         }
 
         .btn-group {
@@ -211,12 +311,23 @@
 
         .results-section {
             display: none;
-            background: rgba(13, 19, 51, 0.8);
-            border: 2px solid #7b2dff;
-            border-radius: 20px;
+            background: rgba(23, 16, 54, 0.78);
+            border: 1px solid rgba(217, 70, 239, 0.4);
+            border-radius: 22px;
             padding: 40px;
-            box-shadow: 0 0 40px rgba(123, 45, 255, 0.2);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(217, 70, 239, 0.16);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .results-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 8%; right: 8%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--mg), var(--vi), var(--cy), transparent);
+            border-radius: 2px;
         }
 
         .results-section.active {
@@ -235,7 +346,8 @@
         .results-count {
             font-family: 'Orbitron', sans-serif;
             font-size: 1.2rem;
-            color: #00ff88;
+            color: var(--gn);
+            text-shadow: 0 0 14px rgba(52, 211, 153, .5);
         }
 
         .results-table {
@@ -248,30 +360,33 @@
         .results-table td {
             padding: 15px;
             text-align: left;
-            border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.18);
         }
 
         .results-table th {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.85rem;
-            color: #00f5ff;
+            font-size: 0.8rem;
+            color: #ddd0ff;
             text-transform: uppercase;
             letter-spacing: 1px;
-            background: rgba(0, 245, 255, 0.05);
+            background: rgba(139, 92, 246, 0.1);
         }
 
+        .results-table tbody tr { transition: background .2s ease; }
+
         .results-table tr:hover {
-            background: rgba(123, 45, 255, 0.1);
+            background: rgba(139, 92, 246, 0.12);
         }
 
         .results-table a {
-            color: #00f5ff;
+            color: var(--cy);
             text-decoration: none;
             transition: color 0.3s ease;
         }
 
         .results-table a:hover {
-            color: #7b2dff;
+            color: var(--mg);
+            text-shadow: 0 0 10px rgba(217, 70, 239, .6);
         }
 
         .badge {
@@ -279,21 +394,21 @@
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .badge-open {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-            border: 1px solid #00ff88;
+            background: rgba(52, 211, 153, 0.18);
+            color: var(--gn);
+            border: 1px solid var(--gn);
         }
 
         .badge-closed {
-            background: rgba(255, 100, 100, 0.2);
-            color: #ff6464;
-            border: 1px solid #ff6464;
+            background: rgba(244, 63, 94, 0.15);
+            color: #fb7185;
+            border: 1px solid #fb7185;
         }
 
         .loading {
@@ -304,16 +419,19 @@
 
         .loading.active {
             display: block;
+            animation: fadeUp .4s both;
         }
 
         .loading-spinner {
             width: 60px;
             height: 60px;
-            border: 4px solid rgba(0, 245, 255, 0.2);
-            border-top-color: #00f5ff;
+            border: 4px solid rgba(139, 92, 246, 0.2);
+            border-top-color: var(--mg);
+            border-right-color: var(--cy);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
+            box-shadow: 0 0 24px rgba(217, 70, 239, .4);
         }
 
         @keyframes spin {
@@ -321,12 +439,20 @@
         }
 
         .error {
-            background: rgba(255, 100, 100, 0.1);
-            border: 1px solid #ff6464;
-            border-radius: 10px;
-            padding: 15px;
+            background: rgba(244, 63, 94, 0.12);
+            border: 1px solid #fb7185;
+            border-left: 4px solid #fb7185;
+            border-radius: 12px;
+            padding: 15px 18px;
             margin-bottom: 20px;
-            color: #ff6464;
+            color: #fda4af;
+            font-weight: 600;
+            animation: msgIn .45s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateX(-24px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .stats {
@@ -337,43 +463,56 @@
         }
 
         .stat-card {
-            background: rgba(0, 245, 255, 0.05);
-            border: 1px solid rgba(0, 245, 255, 0.3);
-            border-radius: 15px;
-            padding: 20px;
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            border-radius: 16px;
+            padding: 22px 20px;
             text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.25);
+            border-color: var(--mg);
         }
 
         .stat-value {
             font-family: 'Orbitron', sans-serif;
             font-size: 2rem;
             font-weight: 700;
-            color: #00f5ff;
+            color: var(--cy);
+            text-shadow: 0 0 14px rgba(34, 211, 238, .5);
         }
 
         .stat-label {
             font-size: 0.85rem;
-            color: #7b9fff;
+            color: #c4b5fd;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: 5px;
+            margin-top: 6px;
         }
 
         footer {
             text-align: center;
-            padding: 30px;
-            color: #7b9fff;
+            padding: 34px;
+            color: #a78bfa;
             font-size: 0.9rem;
+            letter-spacing: 1px;
         }
+
+        footer p::before { content: '❖ '; color: var(--gd); }
+        footer p::after { content: ' ❖'; color: var(--gd); }
 
         .particle {
             position: fixed;
-            width: 2px;
-            height: 2px;
-            background: #00f5ff;
+            width: 3px;
+            height: 3px;
+            background: var(--mg);
             border-radius: 50%;
             pointer-events: none;
             opacity: 0.5;
+            box-shadow: 0 0 8px var(--mg);
             animation: float 15s infinite;
         }
 
@@ -396,10 +535,11 @@
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 2rem;
+                font-size: 1.9rem;
+                letter-spacing: 2px;
             }
             .search-panel {
-                padding: 20px;
+                padding: 22px;
             }
             .btn-group {
                 flex-direction: column;
@@ -407,37 +547,38 @@
             .btn {
                 width: 100%;
             }
+            .nav-link { display: block; margin: 6px 0; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Buscador Científico</h1>
-            <p class="subtitle">Michael Search | Análisis Académico Inteligente</p>
-            <a href="/analysis" class="nav-link" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(255, 107, 107, 0.2); border: 1px solid #ff6b6b; border-radius: 10px; color: #ff6b6b; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; transition: all 0.3s ease;">🍅 Ir a Ventana de Análisis</a>
-            <a href="/analysis-individual" class="nav-link" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(0, 245, 255, 0.12); border: 1px solid #00f5ff; border-radius: 10px; color: #00f5ff; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; transition: all 0.3s ease;">📄 Análisis Individual</a>
-            <a href="/compare" class="nav-link" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(0, 255, 136, 0.2); border: 1px solid #00ff88; border-radius: 10px; color: #00ff88; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; transition: all 0.3s ease;">📊 Comparar Artículos</a>
-            <a href="/conclusion" class="nav-link" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(123, 45, 255, 0.2); border: 1px solid #7b2dff; border-radius: 10px; color: #7b2dff; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; transition: all 0.3s ease;">📊 Generar Conclusiones</a>
+            <h1>🔬 Buscador Científico</h1>
+            <p class="subtitle">✦ Michael Search | Análisis Académico Inteligente ✦</p>
+            <a href="/analysis" class="nav-link">🍅 Ventana de Análisis</a>
+            <a href="/analysis-individual" class="nav-link">📄 Análisis Individual</a>
+            <a href="/compare" class="nav-link">📊 Comparar Artículos</a>
+            <a href="/conclusion" class="nav-link">🏆 Generar Conclusiones</a>
         </header>
 
         <div class="search-panel">
             <div class="form-group">
-                <label for="query">Tema de Investigación</label>
+                <label for="query">🔍 Tema de Investigación</label>
                 <textarea id="query" placeholder="Ej: sistemas expertos aplicados al diagnóstico médico, machine learning en bioinformática..."></textarea>
             </div>
 
             <div class="row">
                 <div class="form-group">
-                    <label for="year_from">Año Desde</label>
+                    <label for="year_from">📅 Año Desde</label>
                     <input type="number" id="year_from" value="2020" min="1900" max="2100">
                 </div>
                 <div class="form-group">
-                    <label for="year_to">Año Hasta</label>
+                    <label for="year_to">🗓️ Año Hasta</label>
                     <input type="number" id="year_to" value="2026" min="1900" max="2100">
                 </div>
                 <div class="form-group">
-                    <label for="language">Idioma</label>
+                    <label for="language">🌐 Idioma</label>
                     <select id="language">
                         <option value="any">Cualquier idioma</option>
                         <option value="es">Español</option>
@@ -449,24 +590,24 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="limit">Resultados por fuente</label>
+                    <label for="limit">🔢 Resultados por fuente</label>
                     <input type="number" id="limit" value="25" min="5" max="100">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="openalex_key">Clave del proveedor bibliográfico (Opcional)</label>
+                <label for="openalex_key">🔑 Clave del proveedor bibliográfico (Opcional)</label>
                 <input type="text" id="openalex_key" placeholder="Tu API key de OpenAlex si tienes una">
             </div>
 
             <div class="checkbox-group">
                 <input type="checkbox" id="require_doi" checked>
-                <label for="require_doi">Exigir DOI o URL</label>
+                <label for="require_doi">✅ Exigir DOI o URL</label>
             </div>
 
             <div class="checkbox-group">
                 <input type="checkbox" id="use_groq">
-                <label for="use_groq">Ampliar consulta con IA (Groq)</label>
+                <label for="use_groq">🤖 Ampliar consulta con IA (Groq)</label>
             </div>
 
             <div class="btn-group">
@@ -478,7 +619,7 @@
 
         <div class="loading" id="loading">
             <div class="loading-spinner"></div>
-            <p>Analizando bases de datos científicas...</p>
+            <p>⏳ Analizando bases de datos científicas...</p>
         </div>
 
         <div class="results-section" id="results">
@@ -497,15 +638,15 @@
             <div class="stats" id="stats" style="display: none;">
                 <div class="stat-card">
                     <div class="stat-value" id="stat-total">0</div>
-                    <div class="stat-label">Total</div>
+                    <div class="stat-label">📊 Total</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="stat-open">0</div>
-                    <div class="stat-label">Acceso Abierto</div>
+                    <div class="stat-label">🔓 Acceso Abierto</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="stat-citations">0</div>
-                    <div class="stat-label">Citas Totales</div>
+                    <div class="stat-label">📑 Citas Totales</div>
                 </div>
             </div>
 
@@ -514,14 +655,14 @@
             <table class="results-table">
                 <thead>
                     <tr>
-                        <th>Título</th>
-                        <th>Autores</th>
-                        <th>Año</th>
-                        <th>Revista</th>
-                        <th>DOI</th>
-                        <th>Acceso</th>
-                        <th>Citas</th>
-                        <th>Enlace</th>
+                        <th>📄 Título</th>
+                        <th>👥 Autores</th>
+                        <th>📅 Año</th>
+                        <th>📰 Revista</th>
+                        <th>🔗 DOI</th>
+                        <th>🔓 Acceso</th>
+                        <th>📈 Citas</th>
+                        <th>🌐 Enlace</th>
                     </tr>
                 </thead>
                 <tbody id="results-body">
@@ -530,7 +671,7 @@
         </div>
 
         <footer>
-            <p>Michael Search | Investigación académica</p>
+            <p>🔭 Michael Search | Investigación académica ✦</p>
         </footer>
     </div>
 

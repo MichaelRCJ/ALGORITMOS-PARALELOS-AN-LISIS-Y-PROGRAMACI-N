@@ -9,7 +9,7 @@ import requests
 import pandas as pd
 import io
 from flask import Blueprint, jsonify, render_template, request, send_file
-from export_handlers import export_to_word, export_to_pdf, export_to_excel
+from exports.export_handlers import export_to_word, export_to_pdf, export_to_excel
 
 # Crear Blueprint para las rutas de conclusiones
 conclusion_bp = Blueprint('conclusion', __name__, url_prefix='/conclusion')

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # Cargar variables de entorno desde .env
 load_dotenv()
 
-from api_clients import (
+from utils.api_clients import (
     search_openalex, search_crossref, dedupe,
     buscar_openalex_simple, buscar_crossref_simple, deduplicar_fuentes, limpiar_texto
 )
@@ -16,11 +16,11 @@ from citations import generar_referencia_apa, generar_cita_apa
 from groq_service import (
     expand_query_with_groq, analyze_with_groq, analyze_category_with_groq
 )
-from export_handlers import export_to_excel, export_to_word, export_to_pdf
-from analysis_routes import analysis_bp
-from analysis_individual_routes import individual_bp
-from compare_routes import compare_bp
-from conclusion_routes import conclusion_bp
+from exports.export_handlers import export_to_excel, export_to_word, export_to_pdf
+from routes.analysis_routes import analysis_bp
+from routes.analysis_individual_routes import individual_bp
+from routes.compare_routes import compare_bp
+from routes.conclusion_routes import conclusion_bp
 
 app = Flask(__name__)
 

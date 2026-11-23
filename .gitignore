@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .env
+analysis_api.env
 .venv/
 venv/
 *.xlsx

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 import pandas as pd
 import os
-from gemini_service import analyze_article, compare_articles, ask_question_about_comparison, FIELD_LABELS
+from services.gemini_service import analyze_article, compare_articles, ask_question_about_comparison, FIELD_LABELS
 
 compare_bp = Blueprint('compare', __name__, url_prefix='/compare')
 

@@ -10,227 +10,195 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { box-sizing: border-box; }
+        :root {
+            --vi: #8b5cf6; --mg: #d946ef; --cy: #22d3ee; --gd: #fbbf24; --gn: #34d399;
         }
-
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1333 100%);
-            color: #e0e6ff;
-            min-height: 100vh;
-            overflow-x: hidden;
+            margin: 0; min-height: 100vh; overflow-x: hidden; position: relative;
+            font-family: 'Rajdhani', sans-serif; letter-spacing: .4px;
+            color: #f1eaff;
+            background: linear-gradient(160deg, #0b0620 0%, #171036 50%, #1e1145 100%);
+            background-attachment: fixed;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(139, 92, 246, .28), transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(217, 70, 239, .20), transparent 45%),
+                radial-gradient(circle at 60% 40%, rgba(34, 211, 238, .10), transparent 40%);
+            animation: bgFloat 18s ease-in-out infinite alternate;
         }
-
-        header {
-            text-align: center;
-            padding: 40px 20px;
-            position: relative;
+        body::after {
+            content: '✦  ❖  ✧  ⬡  ✦  ❖  ✧  ⬡  ✦  ❖  ✧  ⬡  ✦  ❖  ✧  ⬡  ';
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            color: rgba(251, 191, 36, .05); font-size: 22px; letter-spacing: 60px;
+            white-space: pre-wrap; overflow: hidden; user-select: none;
         }
-
+        @keyframes bgFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(3%, -3%) scale(1.08); }
+        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        .container { max-width: 1400px; margin: 0 auto; padding: 26px 20px 70px; position: relative; z-index: 1; }
+        header { text-align: center; padding: 44px 20px 36px; position: relative; animation: fadeUp .8s cubic-bezier(.22,1,.36,1) both; }
+        header::before {
+            content: '✦ ❖ ✦'; display: block; color: var(--gd); font-size: 1.1rem;
+            letter-spacing: 14px; margin-bottom: 14px;
+            text-shadow: 0 0 16px rgba(251, 191, 36, .6);
+            animation: twinkle 2.8s ease-in-out infinite;
+        }
+        @keyframes twinkle { 0%,100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
         h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 900;
-            background: linear-gradient(90deg, #00f5ff, #7b2dff, #00f5ff);
-            background-size: 200% auto;
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient 3s ease infinite;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 10px;
+            font-family: 'Orbitron', sans-serif; font-size: 2.4rem; font-weight: 900;
+            letter-spacing: 4px; text-transform: uppercase; margin-bottom: 12px;
+            background: linear-gradient(90deg, var(--cy), var(--vi), var(--mg), var(--cy));
+            background-size: 250% 100%; -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            filter: drop-shadow(0 0 18px rgba(139, 92, 246, .5));
+            animation: fadeUp .8s cubic-bezier(.22,1,.36,1) both, gradientSlide 6s linear infinite;
         }
-
-        @keyframes gradient {
-            0%, 100% { background-position: 0% center; }
-            50% { background-position: 200% center; }
-        }
-
+        @keyframes gradientSlide { 0% { background-position: 0% 0; } 100% { background-position: 250% 0; } }
         .subtitle {
-            font-size: 1.2rem;
-            color: #7b9fff;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
+            font-size: 1.1rem; color: #c4b5fd; letter-spacing: 2px; margin-bottom: 24px;
+            text-shadow: 0 0 12px rgba(196, 181, 253, .4);
+            animation: fadeUp .8s .12s cubic-bezier(.22,1,.36,1) both;
         }
-
         .nav-link {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid #ff6b6b;
-            border-radius: 10px;
-            color: #ff6b6b;
-            text-decoration: none;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
+            display: inline-block; margin: 6px 8px; padding: 11px 24px;
+            border: 1px solid var(--vi); border-radius: 12px;
+            color: #c4b5fd; text-decoration: none; font-family: 'Orbitron', sans-serif;
+            font-size: .82rem; font-weight: 700; letter-spacing: 1.5px;
+            background: rgba(139, 92, 246, .16); position: relative; overflow: hidden;
+            transition: all .3s ease; animation: fadeUp .7s .2s both;
         }
-
-        .nav-link:hover {
-            background: rgba(255, 107, 107, 0.4);
-            box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+        .nav-link::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.35) 50%, transparent 60%);
+            transform: translateX(-130%); transition: transform .5s ease;
         }
-
+        .nav-link:hover { color: #fff; background: var(--vi); transform: translateY(-3px); box-shadow: 0 0 26px rgba(139,92,246,.6); }
+        .nav-link:hover::after { transform: translateX(130%); }
+        .nav-link:active { transform: translateY(0) scale(.96); }
         .panel {
-            background: rgba(13, 19, 51, 0.8);
-            border: 2px solid #00f5ff;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 40px rgba(0, 245, 255, 0.2), inset 0 0 60px rgba(0, 245, 255, 0.05);
-            backdrop-filter: blur(10px);
+            position: relative; overflow: hidden;
+            background: rgba(23, 16, 54, .78);
+            border: 1px solid rgba(139, 92, 246, .35); border-radius: 20px;
+            padding: 36px; margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(139, 92, 246, .15), inset 0 1px 0 rgba(255,255,255,.06);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both;
+            transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
         }
-
-        .form-group {
-            margin-bottom: 25px;
+        .panel::before {
+            content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cy), var(--mg), var(--gd), transparent);
         }
-
+        .panel:hover {
+            transform: translateY(-4px); border-color: rgba(217, 70, 239, .55);
+            box-shadow: 0 18px 50px rgba(139, 92, 246, .3), 0 0 40px rgba(217, 70, 239, .15);
+        }
+        .form-group { margin-bottom: 25px; }
         label {
-            display: block;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.9rem;
-            color: #00f5ff;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            display: block; font-family: 'Orbitron', sans-serif; font-size: .88rem;
+            color: var(--cy); margin-bottom: 9px; letter-spacing: 1px; text-transform: uppercase;
         }
-
-        input[type="file"],
-        select {
-            width: 100%;
-            padding: 15px 20px;
-            background: rgba(0, 245, 255, 0.05);
-            border: 1px solid #00f5ff;
-            border-radius: 10px;
-            color: #e0e6ff;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+        input[type="file"], select {
+            width: 100%; padding: 15px 20px;
+            background: rgba(139, 92, 246, .08);
+            border: 1px solid rgba(139, 92, 246, .45); border-radius: 12px;
+            color: #f1eaff; font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+            transition: all .25s ease;
         }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #7b2dff;
-            box-shadow: 0 0 20px rgba(123, 45, 255, 0.3);
-            background: rgba(123, 45, 255, 0.1);
+        input[type="number"], textarea {
+            width: 100%; padding: 15px 20px;
+            background: rgba(139, 92, 246, .08);
+            border: 1px solid rgba(139, 92, 246, .45); border-radius: 12px;
+            color: #f1eaff; font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+            transition: all .25s ease;
         }
-
+        select option, textarea { background: #171036; }
+        input:focus, select:focus, input[type="number"]:focus, textarea:focus {
+            outline: none; border-color: var(--mg); background: rgba(217,70,239,.08);
+            box-shadow: 0 0 22px rgba(217,70,239,.35);
+        }
         .checkbox-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 14px;
             margin-top: 15px;
         }
-
         .checkbox-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px;
-            background: rgba(0, 245, 255, 0.05);
-            border: 1px solid rgba(0, 245, 255, 0.3);
-            border-radius: 8px;
+            padding: 12px 14px;
+            background: rgba(139, 92, 246, .07);
+            border: 1px solid rgba(139, 92, 246, .35);
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all .25s ease;
         }
-
         .checkbox-item:hover {
-            background: rgba(0, 245, 255, 0.1);
-            border-color: #00f5ff;
+            background: rgba(217, 70, 239, .12);
+            border-color: var(--mg);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(217,70,239,.2);
         }
-
-        .checkbox-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: #00f5ff;
-            cursor: pointer;
+        .checkbox-item input[type="checkbox"], .checkbox-item input[type="radio"] {
+            width: 18px; height: 18px; accent-color: var(--mg); cursor: pointer;
         }
-
         .checkbox-item label {
             margin: 0;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.92rem;
+            color: #e9d5ff;
         }
-
+        .row { display: flex; gap: 14px; flex-wrap: wrap; }
         .btn {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            font-family: 'Orbitron', sans-serif; font-size: .88rem; font-weight: 700;
+            padding: 14px 32px; border: none; border-radius: 13px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1.5px;
+            transition: all .25s cubic-bezier(.34,1.56,.64,1);
+            position: relative; overflow: hidden; isolation: isolate;
         }
-
+        .btn::after {
+            content: ''; position: absolute; top: -60%; left: -80%; width: 50%; height: 220%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent);
+            transform: skewX(-20deg); transition: left .55s ease; z-index: 1;
+        }
+        .btn:hover::after { left: 150%; }
+        .btn:active { transform: scale(.96); transition-duration: .08s; }
         .btn-primary {
-            background: linear-gradient(135deg, #00f5ff, #7b2dff);
-            color: #0a0e27;
-            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+            color: #fff; background: linear-gradient(135deg, var(--vi), var(--mg));
+            box-shadow: 0 0 26px rgba(139, 92, 246, .45);
         }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 50px rgba(0, 245, 255, 0.6);
-        }
-
+        .btn-primary:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 0 44px rgba(217, 70, 239, .6); }
         .btn-secondary {
-            background: rgba(123, 45, 255, 0.2);
-            border: 2px solid #7b2dff;
-            color: #7b2dff;
+            color: var(--gd); background: rgba(251, 191, 36, .1);
+            border: 2px solid var(--gd);
         }
-
-        .btn-secondary:hover {
-            background: rgba(123, 45, 255, 0.4);
-            box-shadow: 0 0 30px rgba(123, 45, 255, 0.4);
-        }
-
+        .btn-secondary:hover { background: rgba(251,191,36,.26); transform: translateY(-3px); box-shadow: 0 0 30px rgba(251,191,36,.4); }
         .btn-success {
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
-            color: #0a0e27;
+            color: #06231a; background: linear-gradient(135deg, var(--gn), #22d3ee);
         }
-
-        .btn-success:hover {
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
+        .btn-success:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 0 40px rgba(52, 211, 153, .55); }
+        .btn-group { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 22px; }
         .results-section {
-            display: none;
-            background: rgba(13, 19, 51, 0.8);
-            border: 2px solid #7b2dff;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 0 40px rgba(123, 45, 255, 0.2);
-            backdrop-filter: blur(10px);
+            display: none; position: relative; overflow: hidden;
+            background: rgba(23, 16, 54, .8);
+            border: 1px solid rgba(251, 191, 36, .4); border-radius: 22px;
+            padding: 36px; margin-top: 34px;
+            box-shadow: 0 0 50px rgba(251, 191, 36, .14);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both;
         }
-
-        .results-section.active {
-            display: block;
+        .results-section::before {
+            content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gd), var(--mg), var(--cy), transparent);
         }
-
+        .results-section.active { display: block; }
         .results-header {
             display: flex;
             justify-content: space-between;
@@ -239,164 +207,107 @@
             flex-wrap: wrap;
             gap: 20px;
         }
-
         .results-count {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
-            color: #00ff88;
+            font-size: 1.15rem;
+            color: #fde68a;
+            text-shadow: 0 0 14px rgba(251, 191, 36, .5);
         }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .comparison-table th,
-        .comparison-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+        .comparison-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .comparison-table th, .comparison-table td {
+            padding: 15px; text-align: left; border-bottom: 1px solid rgba(139, 92, 246, .18);
             vertical-align: top;
         }
-
         .comparison-table th {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.85rem;
-            color: #00f5ff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: rgba(0, 245, 255, 0.05);
+            font-family: 'Orbitron', sans-serif; font-size: .8rem; color: #ddd0ff;
+            text-transform: uppercase; letter-spacing: 1px;
+            background: rgba(139, 92, 246, .1);
+            border-bottom: 2px solid rgba(34, 211, 238, .4);
         }
-
-        .comparison-table tr:hover {
-            background: rgba(123, 45, 255, 0.1);
-        }
-
-        .comparison-table .aspect-cell {
-            font-weight: 600;
-            color: #7b2dff;
-            width: 15%;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
+        .comparison-table tbody tr { transition: background .2s ease; }
+        .comparison-table tr:hover { background: rgba(139, 92, 246, .1); }
+        .comparison-table .aspect-cell { font-weight: 700; color: var(--gd); width: 15%; }
+        .loading { display: none; text-align: center; padding: 40px; }
+        .loading.active { display: block; animation: fadeUp .4s both; }
         .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(0, 245, 255, 0.2);
-            border-top-color: #00f5ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            width: 56px; height: 56px;
+            border: 4px solid rgba(139, 92, 246, .2); border-top-color: var(--mg); border-right-color: var(--cy);
+            border-radius: 50%; animation: spin 1s linear infinite;
+            margin: 0 auto 20px; box-shadow: 0 0 24px rgba(217,70,239,.4);
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { color: #c4b5fd; letter-spacing: 1px; }
         .error {
-            background: rgba(255, 100, 100, 0.1);
-            border: 1px solid #ff6464;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            color: #ff6464;
+            background: rgba(244, 63, 94, .12); border: 1px solid #fb7185;
+            border-left: 4px solid #fb7185; border-radius: 12px;
+            padding: 16px 20px; margin-bottom: 20px; color: #fda4af; font-weight: 700; letter-spacing: .5px;
+            animation: msgIn .45s cubic-bezier(.22,1,.36,1) both;
         }
-
+        @keyframes msgIn { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
         .articles-preview {
-            background: rgba(0, 245, 255, 0.05);
-            border: 1px solid rgba(0, 245, 255, 0.3);
-            border-radius: 10px;
-            padding: 20px;
+            background: rgba(34, 211, 238, .05);
+            border: 1px solid rgba(34, 211, 238, .3); border-left: 4px solid var(--cy);
+            border-radius: 14px;
+            padding: 18px 20px;
             margin-bottom: 20px;
             max-height: 300px;
             overflow-y: auto;
         }
-
         .article-item {
             padding: 10px;
-            border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+            border-bottom: 1px solid rgba(139, 92, 246, .12);
         }
-
-        .article-item:last-child {
-            border-bottom: none;
-        }
-
-        .article-title {
-            font-weight: 600;
-            color: #00f5ff;
-            margin-bottom: 5px;
-        }
-
-        .article-meta {
-            font-size: 0.85rem;
-            color: #7b9fff;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #7b9fff;
-            font-size: 0.9rem;
-        }
-
+        .article-item:last-child { border-bottom: none; }
+        .article-title { font-weight: 700; color: #a5f3fc; margin-bottom: 5px; }
+        .article-meta { font-size: 0.85rem; color: #c4b5fd; }
+        footer { text-align: center; padding: 34px; color: #a78bfa; font-size: .9rem; letter-spacing: 1px; }
+        footer p { color: #a78bfa !important; }
+        footer p::before { content: '❖ '; color: var(--gd); }
+        footer p::after { content: ' ❖'; color: var(--gd); }
+        ::selection { background: rgba(217, 70, 239, .4); color: #fff; }
+        ::-webkit-scrollbar { width: 11px; height: 11px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,.03); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--mg), var(--vi), var(--cy)); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--cy), var(--gn)); }
         @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8rem;
-            }
-            .panel {
-                padding: 20px;
-            }
-            .btn-group {
-                flex-direction: column;
-            }
-            .btn {
-                width: 100%;
-            }
-            .comparison-table {
-                font-size: 0.85rem;
-            }
-            .comparison-table th,
-            .comparison-table td {
-                padding: 10px;
-            }
+            h1 { font-size: 1.7rem; letter-spacing: 2px; }
+            .panel { padding: 20px; }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; }
+            .comparison-table { font-size: 0.85rem; }
+            .comparison-table th, .comparison-table td { padding: 10px; }
+            .nav-link { display: block; margin: 6px 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Comparar Artículos</h1>
-            <p class="subtitle">Análisis Comparativo Inteligente con Gemini AI</p>
-            <a href="/" class="nav-link">← Volver al Buscador</a>
+            <h1>📊 Comparar Artículos</h1>
+            <p class="subtitle">✦ Análisis Comparativo Inteligente con Gemini AI ✦</p>
+            <a href="/" class="nav-link">🏠 Volver al Buscador</a>
         </header>
 
         <div class="panel">
             <div class="form-group">
-                <label for="excel_file">Cargar Archivo Excel de Artículos</label>
+                <label for="excel_file">📄 Cargar Archivo Excel de Artículos</label>
                 <input type="file" id="excel_file" accept=".xlsx,.xls" onchange="uploadFile()">
-                <p style="font-size: 0.85rem; color: #7b9fff; margin-top: 5px;">
-                    El archivo debe contener columnas como: título, autores, año, abstract, doi, etc.
+                <p style="font-size: 0.85rem; color: #c4b5fd; margin-top: 5px;">
+                    ℹ️ El archivo debe contener columnas como: título, autores, año, abstract, doi, etc.
                 </p>
                 <div id="upload-status" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
             </div>
 
             <div id="upload-section" style="display: none;">
                 <div class="articles-preview" id="articles-preview"></div>
-                <p id="articles-count" style="color: #00ff88; margin-bottom: 20px;"></p>
+                <p id="articles-count" style="color: #6ee7b7; margin-bottom: 20px;"></p>
             </div>
 
             <div class="form-group" id="fields-section" style="display: none;">
-                <label>Seleccionar Campos para Análisis y Comparación</label>
+                <label>🧩 Seleccionar Campos para Análisis y Comparación</label>
                 <div class="checkbox-grid" id="fields-checkboxes">
                     {% for field, label in field_labels.items() %}
                     <div class="checkbox-item">
@@ -408,7 +319,7 @@
             </div>
 
             <div class="form-group" id="count-section" style="display: none;">
-                <label>Cantidad de Artículos a Comparar</label>
+                <label>🔢 Cantidad de Artículos a Comparar</label>
                 <div class="row">
                     <div class="checkbox-item" style="flex: 1;">
                         <input type="radio" id="count_5" name="article_count" value="5" checked>
@@ -428,14 +339,14 @@
                     </div>
                 </div>
                 <div class="form-group" id="custom-count-group" style="display: none; margin-top: 15px;">
-                    <label for="custom_count">Número de artículos</label>
+                    <label for="custom_count">✏️ Número de artículos</label>
                     <input type="number" id="custom_count" min="1" max="50" value="5">
                 </div>
             </div>
 
             <div class="btn-group" id="action-buttons" style="display: none;">
                 <button class="btn btn-primary" onclick="analyzeWithGemini()">
-                    🤖 Analizar Artículos Seleccionados con Gemini
+                    🤖 Analizar Artículos Seleccionados con Gemini ✦
                 </button>
                 <button class="btn btn-success" onclick="compareArticles()">
                     📊 Generar Comparación
@@ -461,11 +372,11 @@
             <table class="comparison-table" id="comparison-table">
                 <thead>
                     <tr>
-                        <th>Aspecto</th>
-                        <th>Artículos/Autores</th>
-                        <th>Semejanzas</th>
-                        <th>Diferencias</th>
-                        <th>Conclusión</th>
+                        <th>🏷️ Aspecto</th>
+                        <th>📚 Artículos/Autores</th>
+                        <th>🤝 Semejanzas</th>
+                        <th>⚡ Diferencias</th>
+                        <th>🏆 Conclusión</th>
                     </tr>
                 </thead>
                 <tbody id="comparison-body">
@@ -473,13 +384,13 @@
             </table>
 
             <div class="panel" id="question-section" style="margin-top: 30px; display: none;">
-                <h3 style="font-family: 'Orbitron', sans-serif; color: #00f5ff; margin-bottom: 20px;">
+                <h3 style="font-family: 'Orbitron', sans-serif; color: #a5f3fc; margin-bottom: 20px;">
                     🤔 Hacer Preguntas sobre el Análisis
                 </h3>
                 <div class="form-group">
-                    <label for="question-input">Ingresa tu pregunta sobre los artículos analizados</label>
+                    <label for="question-input">💬 Ingresa tu pregunta sobre los artículos analizados</label>
                     <textarea id="question-input" rows="3"
-                        style="width: 100%; padding: 15px 20px; background: rgba(0, 245, 255, 0.05); border: 1px solid #00f5ff; border-radius: 10px; color: #e0e6ff; font-family: 'Rajdhani', sans-serif; font-size: 1rem; resize: vertical;"
+                        style="width: 100%; padding: 15px 20px; background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 12px; color: #f1eaff; font-family: 'Rajdhani', sans-serif; font-size: 1rem; resize: vertical;"
                         placeholder="Ej: ¿Cuál es la metodología más común entre los artículos? ¿Qué herramientas se utilizaron?"></textarea>
                 </div>
                 <div class="btn-group">
@@ -488,8 +399,8 @@
                     </button>
                 </div>
                 <div id="answer-container" style="margin-top: 20px; display: none;">
-                    <div style="background: rgba(123, 45, 255, 0.1); border: 1px solid #7b2dff; border-radius: 10px; padding: 20px;">
-                        <h4 style="color: #7b2dff; margin-bottom: 10px; font-family: 'Orbitron', sans-serif;">Respuesta:</h4>
+                    <div style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 14px; padding: 20px;">
+                        <h4 style="color: #ddd0ff; margin-bottom: 10px; font-family: 'Orbitron', sans-serif;">💡 Respuesta:</h4>
                         <p id="answer-text" style="line-height: 1.6;"></p>
                     </div>
                 </div>
@@ -497,7 +408,7 @@
         </div>
 
         <footer>
-            <p>Michael Search | Comparación Inteligente de Artículos Científicos</p>
+            <p>🔭 Michael Search | Comparación Inteligente de Artículos Científicos ✦</p>
         </footer>
     </div>
 
@@ -514,9 +425,9 @@
 
                 const statusDiv = document.getElementById('upload-status');
                 statusDiv.style.display = 'block';
-                statusDiv.style.background = 'rgba(0, 245, 255, 0.1)';
-                statusDiv.style.border = '1px solid #00f5ff';
-                statusDiv.style.color = '#00f5ff';
+                statusDiv.style.background = 'rgba(139, 92, 246, 0.12)';
+                statusDiv.style.border = '1px solid #8b5cf6';
+                statusDiv.style.color = '#a5f3fc';
                 statusDiv.textContent = '⏳ Cargando archivo...';
 
                 const formData = new FormData();
@@ -530,9 +441,9 @@
                 .then(data => {
                     if (data.success) {
                         uploadedArticles = data.articles;
-                        statusDiv.style.background = 'rgba(0, 255, 136, 0.1)';
-                        statusDiv.style.border = '1px solid #00ff88';
-                        statusDiv.style.color = '#00ff88';
+                        statusDiv.style.background = 'rgba(52, 211, 153, 0.12)';
+                        statusDiv.style.border = '1px solid #34d399';
+                        statusDiv.style.color = '#6ee7b7';
                         statusDiv.textContent = `✅ ${data.count} artículos cargados correctamente`;
                         
                         displayArticlesPreview(uploadedArticles);
@@ -543,24 +454,24 @@
                         document.getElementById('action-buttons').style.display = 'block';
                         document.getElementById('articles-count').textContent = `${data.count} artículos cargados correctamente`;
                     } else {
-                        statusDiv.style.background = 'rgba(255, 100, 100, 0.1)';
-                        statusDiv.style.border = '1px solid #ff6464';
-                        statusDiv.style.color = '#ff6464';
+                        statusDiv.style.background = 'rgba(251, 113, 133, 0.12)';
+                        statusDiv.style.border = '1px solid #fb7185';
+                        statusDiv.style.color = '#fda4af';
                         statusDiv.textContent = `❌ Error: ${data.error}`;
                     }
                 })
                 .catch(error => {
-                    statusDiv.style.background = 'rgba(255, 100, 100, 0.1)';
-                    statusDiv.style.border = '1px solid #ff6464';
-                    statusDiv.style.color = '#ff6464';
+                    statusDiv.style.background = 'rgba(251, 113, 133, 0.12)';
+                    statusDiv.style.border = '1px solid #fb7185';
+                    statusDiv.style.color = '#fda4af';
                     statusDiv.textContent = `❌ Error: ${error.message}`;
                 });
             } catch (error) {
                 const statusDiv = document.getElementById('upload-status');
                 statusDiv.style.display = 'block';
-                statusDiv.style.background = 'rgba(255, 100, 100, 0.1)';
-                statusDiv.style.border = '1px solid #ff6464';
-                statusDiv.style.color = '#ff6464';
+                statusDiv.style.background = 'rgba(251, 113, 133, 0.12)';
+                statusDiv.style.border = '1px solid #fb7185';
+                statusDiv.style.color = '#fda4af';
                 statusDiv.textContent = `❌ Error: ${error.message}`;
             }
         }
@@ -622,7 +533,7 @@
             if (articles.length > 10) {
                 const more = document.createElement('div');
                 more.style.textAlign = 'center';
-                more.style.color = '#7b9fff';
+                more.style.color = '#a78bfa';
                 more.style.padding = '10px';
                 more.textContent = `... y ${articles.length - 10} artículos más`;
                 preview.appendChild(more);

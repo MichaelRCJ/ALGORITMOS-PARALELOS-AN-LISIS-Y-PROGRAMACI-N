@@ -7,14 +7,14 @@ from datetime import datetime
 import pandas as pd
 from flask import Blueprint, jsonify, render_template, request, send_file
 
-from api_clients import buscar_crossref_simple, buscar_openalex_simple
-from export_individual import (
+from utils.api_clients import buscar_crossref_simple, buscar_openalex_simple
+from exports.export_individual import (
     export_individual_csv,
     export_individual_excel,
     export_individual_pdf,
     export_individual_word,
 )
-from gemini_service import MISSING_INFO, analyze_article, compare_articles
+from services.gemini_service import analyze_article, compare_articles
 
 
 individual_bp = Blueprint("analysis_individual", __name__, url_prefix="/analysis-individual")
@@ -92,7 +92,10 @@ def _fallback_analysis(article, selected_fields):
     """Extrae evidencia textual del resumen cuando Gemini está temporalmente limitado."""
     abstract = _text(article.get("abstract", ""))
     if not abstract:
-        return {field: MISSING_INFO for field in selected_fields}
+        return {
+            field: "El registro no incluye resumen; se requiere consultar el texto completo del artículo para determinar este aspecto con mayor precisión."
+            for field in selected_fields
+        }
     sentences = [part.strip() for part in re.split(r"(?<=[.!?])\s+", abstract) if part.strip()]
     keywords = {
         "objetivo": ("objetivo", "propósito", "purpose", "aim", "evaluar", "analizar"),
@@ -114,8 +117,34 @@ def _fallback_analysis(article, selected_fields):
         elif matches:
             fallback[field] = "Según el resumen: " + " ".join(matches[:2])[:600]
         else:
-            fallback[field] = "El resumen disponible no especifica este aspecto."
+            fallback[field] = "El resumen disponible no detalla explícitamente este aspecto; el análisis se basa en la evidencia parcial del registro y se recomienda consultar el texto completo del artículo para mayor profundidad."
     return fallback
+
+
+def _split_authors(value):
+    """Separa una cadena de autores en nombres individuales."""
+    parts = re.split(r"[;|•\n]+|\s+(?:&|y)\s+", str(value or ""))
+    names = []
+    for part in parts:
+        name = re.sub(r"\s+", " ", part).strip().strip(".")
+        if name and len(name) > 2 and not name.lower().startswith(("and ", "et al")):
+            names.append(name)
+    return names
+
+
+def _unique_authors(articles, limit=300):
+    """Autores únicos en orden de aparición, sin duplicados (sin acentos/mayúsculas)."""
+    seen = set()
+    authors = []
+    for article in articles:
+        for name in _split_authors(article.get("autores", "")):
+            key = _normalize_column(name)
+            if key and key not in seen:
+                seen.add(key)
+                authors.append(name)
+                if len(authors) >= limit:
+                    return authors
+    return authors
 
 
 def _articles_from_dataframe(dataframe):
@@ -260,6 +289,7 @@ def load_excel():
             "total": len(articles),
             "columns": list(dataframe.columns),
             "recognized": columns,
+            "authors": _unique_authors(articles),
         })
     except Exception as exc:
         return jsonify({"error": f"Error leyendo Excel: {exc}"}), 500
@@ -288,6 +318,11 @@ def start_analysis():
             year_to = int(year_to) if year_to else None
         except ValueError:
             return jsonify({"error": "El rango de años no es válido"}), 400
+        selected_authors = [
+            _normalize_column(author)
+            for author in data.get("authors", [])
+            if _normalize_column(author)
+        ]
         filtered = []
         for article in job["articles"]:
             article_text = " ".join(str(article.get(key, "")) for key in ("titulo", "abstract", "autores")).lower()
@@ -301,6 +336,10 @@ def start_analysis():
                 continue
             if year_to and (article_year is None or article_year > year_to):
                 continue
+            if selected_authors:
+                article_authors = _normalize_column(article.get("autores", ""))
+                if not any(author in article_authors for author in selected_authors):
+                    continue
             filtered.append(article)
         if not filtered:
             return jsonify({"error": "Ningún artículo coincide con los filtros seleccionados"}), 400

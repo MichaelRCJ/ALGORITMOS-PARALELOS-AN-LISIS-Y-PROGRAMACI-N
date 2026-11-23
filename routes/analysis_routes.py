@@ -9,11 +9,11 @@ import pandas as pd
 import io
 import json
 
-from analysis_window import (
-    CATEGORIAS, investigar_categoria, investigar_todo, 
+from services.analysis_window import (
+    CATEGORIAS, investigar_categoria, investigar_todo,
     limpiar_resultados, RESULTADOS_ANALISIS
 )
-from export_handlers import export_to_word, export_to_pdf, export_analysis_to_excel
+from exports.export_handlers import export_to_word, export_to_pdf, export_analysis_to_excel
 
 # Crear Blueprint para las rutas de análisis
 analysis_bp = Blueprint('analysis', __name__, url_prefix='/analysis')
